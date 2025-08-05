@@ -32,9 +32,23 @@ app.use(
   })
 );
 
-// Health check endpoint for Railway
+// Public health check endpoint for Railway (no authentication required)
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'Server is healthy' });
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Additional health check route at root for Railway
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Spill Chat API is running',
+    version: '1.0.0'
+  });
 });
 
 app.use("/api/auth", authRoutes);
