@@ -11,7 +11,7 @@ import { app, server } from "./lib/socket.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3000; // Railway uses PORT 3000 by default
+const PORT = process.env.PORT || 3000;
 const __dirname = path.resolve();
 
 app.use(express.json({ limit: '10mb' }));
@@ -24,15 +24,19 @@ app.use(
     origin: process.env.NODE_ENV === "production" 
       ? [
           process.env.FRONTEND_URL || "https://spill-production.up.railway.app",
-          /\.railway\.app$/,  // Allow all railway.app subdomains
-          /\.up\.railway\.app$/  // Allow all up.railway.app subdomains
+          /\.railway\.app$/,
+          /\.up\.railway\.app$/
         ]
       : "http://localhost:5173",
     credentials: true,
   })
 );
 
-// Public health check endpoint for Railway (no authentication required)
+// API routes - MUST come before static file serving
+app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
+
+// Health check endpoints
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
@@ -42,8 +46,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Additional health check route at root for Railway
-app.get('/', (req, res) => {
+// API status endpoint
+app.get('/api', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
     message: 'Spill Chat API is running',
@@ -51,19 +55,24 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/messages", messageRoutes);
-
-// Serve static files in production
+// Serve static files in production - FIXED PATHS
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  // Correct path to frontend dist folder
+  const frontendDistPath = path.join(__dirname, "frontend", "dist");
+  
+  app.use(express.static(frontendDistPath));
 
+  // Handle client-side routing - serve index.html for all non-API routes
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+    res.sendFile(path.join(frontendDistPath, "index.html"));
   });
 }
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on PORT: ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  if (process.env.NODE_ENV === "production") {
+    console.log(`Frontend static files served from: ${path.join(__dirname, "frontend", "dist")}`);
+  }
   connectDB();
 });
