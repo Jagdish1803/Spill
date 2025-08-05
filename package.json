@@ -3,19 +3,24 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-   "build":"npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend ",
-   "start":"npm run start --prefix backend"
+    "build": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
+    "start": "npm run start --prefix backend",
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jagdish1803/Spill.git"
   },
-  "keywords": [],
+  "keywords": ["chat", "react", "nodejs", "socket.io"],
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Jagdish1803/Spill/issues"
   },
   "homepage": "https://github.com/Jagdish1803/Spill#readme",
-  "description": ""
+  "description": "Real-time chat application",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
 }

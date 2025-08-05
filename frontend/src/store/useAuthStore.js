@@ -3,7 +3,10 @@ import { axiosInstance } from "../lib/axios.jsx";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+// Updated BASE_URL for Railway
+const BASE_URL = import.meta.env.MODE === "development" 
+    ? "http://localhost:5001" 
+    : window.location.origin; // Use current domain on Railway
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -102,13 +105,20 @@ export const useAuthStore = create((set, get) => ({
       query: {
         userId: authUser._id,
       },
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true
     });
+    
     socket.connect();
-
     set({ socket: socket });
 
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
+    });
+
+    socket.on("connect_error", (error) => {
+      console.log("Socket connection error:", error);
     });
   },
 

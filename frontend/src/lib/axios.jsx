@@ -1,9 +1,11 @@
 import axios from 'axios';
 
 export const axiosInstance = axios.create({
-    baseURL: import.meta.env.MODE==="development" ? "http://localhost:5001/api":"/api",
+    baseURL: import.meta.env.MODE === "development" 
+        ? "http://localhost:5001/api"
+        : "/api", // Railway will serve from same domain
     withCredentials: true,
-    timeout: 15000,
+    timeout: 30000, // Increased timeout for Railway
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'

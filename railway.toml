@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+healthcheckPath = "/api/auth/check"
+healthcheckTimeout = 100
+restartPolicyType = "never"
