@@ -3,8 +3,9 @@ nixPkgs = ["nodejs-18_x", "npm-9_x"]
 
 [phases.build]
 cmds = [
+  "npm install terser --save-dev --prefix frontend",
   "npm install --prefix backend",
-  "npm install --prefix frontend", 
+  "npm install --prefix frontend",
   "npm run build --prefix frontend",
   "ls -la frontend/",
   "ls -la frontend/dist/ || echo 'dist folder not found'"
@@ -15,3 +16,5 @@ cmd = "npm run start --prefix backend"
 
 [variables]
 NODE_ENV = "production"
+
+
