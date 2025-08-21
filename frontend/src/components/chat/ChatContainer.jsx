@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useChatStore } from "../../store/useChatStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { formatMessageTime } from "../../lib/utils";
@@ -89,8 +90,11 @@ const ChatContainer = () => {
   // Message bubble
   const MessageBubble = useCallback(
     ({ message, isOwn, showAvatar, showTime }) => (
-      <div
-        className={`flex items-end gap-2 mb-3 ${isOwn ? "flex-row-reverse" : ""} animate-fade-in`}
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`flex items-end gap-2 mb-3 ${isOwn ? "flex-row-reverse" : ""}`}
       >
         {showAvatar ? (
           <img
@@ -100,7 +104,7 @@ const ChatContainer = () => {
                 : selectedUser?.profilePic || "/avatar.png"
             }
             alt="Profile"
-            className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 flex-shrink-0"
+            className="w-8 h-8 rounded-full object-cover border border-gray-200 flex-shrink-0"
             loading="lazy"
           />
         ) : (
@@ -118,20 +122,23 @@ const ChatContainer = () => {
                 isOwn ? "flex-row-reverse" : ""
               }`}
             >
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+              <span className="text-xs font-medium text-gray-600">
                 {isOwn ? "You" : selectedUser?.fullname}
               </span>
-              <span className="text-xs text-gray-500 dark:text-gray-500">
+              <span className="text-xs text-gray-500">
                 {formatMessageTime(message.createdAt)}
               </span>
             </div>
           )}
 
-          <div
+          <motion.div
+            initial={{ opacity: 0.8, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
             className={`rounded-2xl px-4 py-2.5 shadow-sm ${
               isOwn
                 ? "bg-blue-500 text-white rounded-br-md"
-                : "bg-white dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-600 rounded-bl-md"
+                : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"
             }`}
           >
             {message.image && (
@@ -148,7 +155,7 @@ const ChatContainer = () => {
                 {message.text}
               </p>
             )}
-          </div>
+          </motion.div>
 
           {isOwn && (
             <div className="flex items-center gap-1 mt-1 px-1 text-xs text-gray-400">
@@ -157,7 +164,7 @@ const ChatContainer = () => {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     ),
     [authUser?.profilePic, selectedUser?.fullname, selectedUser?.profilePic]
   );
@@ -189,7 +196,7 @@ const ChatContainer = () => {
   if (isMessagesLoading) {
     return (
       <div className="flex-1 flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800">
+        <div className="flex items-center justify-between p-4 border-b bg-white">
           <div className="flex items-center gap-3">
             <div className="skeleton w-10 h-10 rounded-full"></div>
             <div>
@@ -204,48 +211,53 @@ const ChatContainer = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="hidden md:flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800 shadow-sm">
+      <div className="hidden md:flex items-center justify-between p-4 border-b bg-white shadow-sm">
         <div className="flex items-center gap-3">
           <div className="relative">
             <img
               src={selectedUser?.profilePic || "/avatar.png"}
               alt={selectedUser?.fullname || "User"}
-              className="w-10 h-10 object-cover rounded-full border-2 border-gray-200 dark:border-gray-600"
+              className="w-10 h-10 object-cover rounded-full border-2 border-gray-200"
               loading="lazy"
             />
             {isOnline && (
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></span>
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
             )}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">
+            <h3 className="font-semibold text-gray-900">
               {selectedUser?.fullname || "Unknown User"}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500">
               {isTyping ? (
-                <span className="flex items-center gap-1">
-                  <span className="animate-pulse">Typing</span>
+                <motion.span
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0.6 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ repeat: Infinity, duration: 1 }}
+                >
+                  Typing
                   <span className="flex gap-1">
-                    <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce"></span>
-                    <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce delay-100"></span>
-                    <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce delay-200"></span>
+                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce"></span>
+                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce delay-100"></span>
+                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce delay-200"></span>
                   </span>
-                </span>
+                </motion.span>
               ) : isOnline ? "Online" : "Offline"}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-1">
-          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
             <Phone className="w-5 h-5" />
           </button>
-          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
             <Video className="w-5 h-5" />
           </button>
-          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
             <MoreHorizontal className="w-5 h-5" />
           </button>
         </div>
@@ -254,19 +266,19 @@ const ChatContainer = () => {
       {/* Messages */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-1 bg-gray-50 dark:bg-gray-900 custom-scrollbar relative"
+        className="flex-1 overflow-y-auto p-4 space-y-1 bg-gray-50 relative custom-scrollbar"
         role="log"
         aria-live="polite"
       >
         {messages.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-              <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+              <User className="w-8 h-8 text-blue-600" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
               No messages yet
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-4">
+            <p className="text-gray-500 max-w-sm mx-auto mb-4">
               Send a message to start your conversation with {selectedUser?.fullname}
             </p>
             <button
@@ -278,36 +290,46 @@ const ChatContainer = () => {
           </div>
         ) : (
           <>
-            {messageList}
+            <AnimatePresence>{messageList}</AnimatePresence>
             {isTyping && (
-              <div className="flex items-center gap-2 mb-3 animate-fade-in">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-2 mb-3"
+              >
                 <img
                   src={selectedUser?.profilePic || "/avatar.png"}
                   alt="Profile"
-                  className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+                  className="w-8 h-8 rounded-full object-cover border border-gray-200"
                 />
-                <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl px-4 py-2.5 shadow-sm">
+                <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2.5 shadow-sm">
                   <div className="flex gap-1">
                     <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></span>
                     <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100"></span>
                     <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200"></span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
             <div ref={messageEndRef} />
           </>
         )}
 
-        {showScrollButton && (
-          <button
-            onClick={() => scrollToBottom("smooth")}
-            className="fixed bottom-24 right-4 md:right-6 z-10 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all hover:scale-105"
-            aria-label="Scroll to bottom"
-          >
-            <ArrowDown className="w-5 h-5" />
-          </button>
-        )}
+        <AnimatePresence>
+          {showScrollButton && (
+            <motion.button
+              onClick={() => scrollToBottom("smooth")}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-24 right-4 md:right-6 z-10 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all"
+              aria-label="Scroll to bottom"
+            >
+              <ArrowDown className="w-5 h-5" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
 
       <MessageInput />

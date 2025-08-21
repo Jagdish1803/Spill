@@ -10,11 +10,13 @@ const Sidebar = () => {
     users, 
     selectedUser, 
     setSelectedUser, 
-    isUsersLoading,
     getUnreadCount,
     getLastMessage,
+    isUsersLoading,
   } = useChatStore();
+
   const { onlineUsers } = useAuthStore();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(true);
 
@@ -51,7 +53,7 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={`h-full transition-all duration-300 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex flex-col 
+      className={`h-full transition-[width] duration-300 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex flex-col overflow-hidden
       ${isOpen ? "w-80 lg:w-72" : "w-16"}`}
     >
       {/* Header */}
@@ -101,8 +103,8 @@ const Sidebar = () => {
 
       {/* User List */}
       <div className="custom-scrollbar overflow-y-auto flex-1">
-        {filteredUsers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+        {filteredUsers.length === 0 && !isUsersLoading ? (
+          <div className="flex flex-col items-center justify-center h-full text-center px-4 animate-fadeIn">
             <Users className="mx-auto h-12 w-12 text-gray-400 mb-3" />
             <h3 className="text-sm font-medium text-gray-900 dark:text-white">
               No contacts found
@@ -135,7 +137,7 @@ const Sidebar = () => {
                       loading="lazy"
                     />
                     {isOnline && (
-                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></span>
                     )}
                   </div>
 
@@ -172,7 +174,7 @@ const Sidebar = () => {
                             : "Offline"}
                         </p>
                         {unreadCount > 0 && (
-                          <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-0.5 ml-2">
+                          <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-0.5 ml-2 shadow-sm">
                             {unreadCount > 99 ? "99+" : unreadCount}
                           </span>
                         )}
@@ -190,7 +192,7 @@ const Sidebar = () => {
       {isOpen && (
         <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
           <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
             {onlineUsers.length} online
           </div>
         </div>

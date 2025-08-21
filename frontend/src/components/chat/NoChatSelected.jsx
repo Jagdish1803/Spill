@@ -1,13 +1,10 @@
-import { MessageSquare, Plus } from "lucide-react";
-import { useChatStore } from "../../store/useChatStore";
+import { MessageSquare } from "lucide-react";
 
 const NoChatSelected = () => {
-  const { startNewChat } = useChatStore(); // optional action if you have it
-
   return (
     <div className="w-full flex flex-1 flex-col items-center justify-center p-8 sm:p-16 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-md text-center space-y-6">
-        {/* Icon with animation */}
+        {/* Icon with subtle bounce */}
         <div className="flex justify-center">
           <div className="w-20 h-20 rounded-2xl bg-blue-100 dark:bg-blue-900 flex items-center justify-center animate-bounce-slow">
             <MessageSquare className="w-10 h-10 text-blue-600 dark:text-blue-400" />
@@ -23,17 +20,6 @@ const NoChatSelected = () => {
             Select a conversation from the sidebar to start chatting with your
             friends and colleagues.
           </p>
-        </div>
-
-        {/* Optional CTA */}
-        <div className="pt-4">
-          <button
-            onClick={startNewChat}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-colors touch-target"
-          >
-            <Plus className="w-4 h-4" />
-            Start New Chat
-          </button>
         </div>
       </div>
     </div>

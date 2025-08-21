@@ -27,7 +27,6 @@ const MessageInput = () => {
   }, []);
 
   const handleFiles = useCallback((files) => {
-    const newImages = [];
     for (let file of files) {
       if (file.size > MAX_FILE_SIZE) {
         toast.error("Image must be < 5MB");
@@ -144,7 +143,7 @@ const MessageInput = () => {
 
   return (
     <div
-      className="p-4 bg-white dark:bg-gray-800 border-t dark:border-gray-700"
+      className="p-4 bg-white dark:bg-gray-900 border-t dark:border-gray-700 transition-all"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
     >
@@ -152,16 +151,16 @@ const MessageInput = () => {
       {images.length > 0 && (
         <div className="mb-3 flex gap-2 flex-wrap">
           {images.map((img, i) => (
-            <div key={i} className="relative">
+            <div key={i} className="relative group">
               <img
                 src={img}
                 alt={`Preview ${i + 1}`}
-                className="w-20 h-20 object-cover rounded-lg border"
+                className="w-20 h-20 object-cover rounded-xl border shadow-sm transition-transform group-hover:scale-105"
               />
               <button
                 type="button"
                 onClick={() => removeImage(i)}
-                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center"
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-md transition"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -174,7 +173,7 @@ const MessageInput = () => {
         <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
-            className="w-full px-4 py-3 pr-12 border rounded-lg resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-4 py-3 pr-12 border rounded-2xl resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             placeholder="Type a message..."
             value={text}
             onChange={handleTextChange}
@@ -206,14 +205,16 @@ const MessageInput = () => {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="p-3 text-gray-500 hover:text-gray-700 rounded-lg"
+          className="p-3 text-gray-500 hover:text-blue-600 rounded-xl transition"
+          title="Attach Image"
         >
           <Image className="w-5 h-5" />
         </button>
 
         <button
           type="submit"
-          className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+          className="p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition disabled:opacity-50 shadow-md"
+          title="Send Message"
           disabled={!canSend}
         >
           {isSendingMessage ? (
