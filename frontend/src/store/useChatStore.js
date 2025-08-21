@@ -31,6 +31,7 @@ export const useChatStore = create((set, get) => ({
       set({ messages: res.data });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch messages");
+      set({ messages: [] }); // clear messages on error
     } finally {
       set({ isMessagesLoading: false });
     }
@@ -88,11 +89,26 @@ export const useChatStore = create((set, get) => ({
   sendTypingIndicator: (userId, isTyping) => {
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
-
     socket.emit("typing", { userId, isTyping });
   },
 
-  setSelectedUser: (selectedUser) => set({ selectedUser }),
+  setSelectedUser: async (user) => {
+    const current = get().selectedUser;
+
+    if (current?._id === user?._id) return; // don’t refetch same user
+
+    set({
+      selectedUser: user,
+      messages: [],
+      isMessagesLoading: true,
+    });
+
+    if (user?._id) {
+      await get().getMessages(user._id);
+    } else {
+      set({ isMessagesLoading: false });
+    }
+  },
 
   // Helper functions for UI
   getUnreadCount: (userId) => {

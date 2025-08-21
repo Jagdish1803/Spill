@@ -1,7 +1,19 @@
 import React, { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Camera, Mail, User, Calendar, Shield, LogOut, Loader2, MessageSquare, Save, X } from "lucide-react";
+import {
+  Camera,
+  Mail,
+  User,
+  Calendar,
+  Shield,
+  LogOut,
+  Loader2,
+  MessageSquare,
+  Save,
+  X,
+} from "lucide-react";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 
 const ProfilePage = () => {
   const { authUser, logout, updateProfile, isUpdatingProfile } = useAuthStore();
@@ -17,7 +29,7 @@ const ProfilePage = () => {
       return;
     }
 
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast.error("Please select a valid image file");
       return;
     }
@@ -69,6 +81,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
+      {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3">
@@ -83,12 +96,18 @@ const ProfilePage = () => {
         </div>
       </div>
 
+      {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
+          {/* Avatar Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="lg:col-span-1"
+          >
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="text-center">
-                <div className="relative mx-auto w-32 h-32 mb-4">
+                <div className="relative mx-auto w-32 h-32 mb-4 group">
                   <img
                     src={selectedImg || authUser.profilePic || "/avatar.png"}
                     alt="Profile"
@@ -96,11 +115,11 @@ const ProfilePage = () => {
                   />
                   <label
                     htmlFor="avatar-upload"
-                    className={`absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 p-2 rounded-full cursor-pointer transition-colors ${
-                      isUpdatingProfile ? 'opacity-50 cursor-not-allowed' : ''
+                    className={`absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer ${
+                      isUpdatingProfile ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
-                    <Camera className="w-4 h-4 text-white" />
+                    <Camera className="w-6 h-6 text-white" />
                     <input
                       type="file"
                       id="avatar-upload"
@@ -111,9 +130,9 @@ const ProfilePage = () => {
                     />
                   </label>
                 </div>
-                
+
                 <p className="text-sm text-gray-500 mb-4">
-                  Click the camera icon to update your photo
+                  Hover & click to change photo
                 </p>
 
                 {showUpdateButton && (
@@ -121,20 +140,20 @@ const ProfilePage = () => {
                     <button
                       onClick={handleUpdateProfile}
                       disabled={isUpdatingProfile}
-                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm transition-colors"
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm transition"
                     >
                       {isUpdatingProfile ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <Save className="w-4 h-4" />
                       )}
-                      {isUpdatingProfile ? "Updating..." : "Save Photo"}
+                      {isUpdatingProfile ? "Updating..." : "Save"}
                     </button>
-                    
+
                     <button
                       onClick={handleCancelUpdate}
                       disabled={isUpdatingProfile}
-                      className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm transition-colors"
+                      className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm transition"
                     >
                       <X className="w-4 h-4" />
                       Cancel
@@ -143,20 +162,24 @@ const ProfilePage = () => {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
 
+          {/* Info Cards */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            {/* Basic Info */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-xl shadow-sm border p-6"
+            >
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <User className="size-5 text-blue-600" />
                 Basic Information
               </h2>
-              
+
               <div className="space-y-4">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Full Name</span>
-                  </label>
+                <div>
+                  <label className="block text-sm font-medium">Full Name</label>
                   <div className="flex border p-3 rounded-md items-center bg-gray-50">
                     <User className="w-5 h-5 text-gray-400 mr-3" />
                     <input
@@ -168,9 +191,9 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Email Address</span>
+                <div>
+                  <label className="block text-sm font-medium">
+                    Email Address
                   </label>
                   <div className="flex border p-3 rounded-md items-center bg-gray-50">
                     <Mail className="w-5 h-5 text-gray-400 mr-3" />
@@ -183,33 +206,37 @@ const ProfilePage = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            {/* Account Info */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-xl shadow-sm border p-6"
+            >
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <Shield className="size-5 text-blue-600" />
                 Account Information
               </h2>
-              
+
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-3 border-b border-gray-100">
                   <span className="text-gray-600">Member Since</span>
                   <span className="font-medium flex items-center gap-2">
                     <Calendar className="size-4 text-gray-400" />
-                    {authUser?.createdAt 
+                    {authUser?.createdAt
                       ? new Date(authUser.createdAt).toLocaleDateString()
-                      : "Not available"
-                    }
+                      : "Not available"}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-3 border-b border-gray-100">
                   <span className="text-gray-600">Account Status</span>
                   <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                     Active
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-3">
                   <span className="text-gray-600">User ID</span>
                   <span className="font-mono text-sm text-gray-500">
@@ -217,25 +244,30 @@ const ProfilePage = () => {
                   </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            {/* Actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-xl shadow-sm border p-6"
+            >
               <h2 className="text-xl font-semibold mb-6">Actions</h2>
-              
+
               <div className="space-y-4">
                 <button
                   onClick={handleLogout}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-md transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-md transition flex items-center justify-center gap-2"
                 >
                   <LogOut className="size-5" />
                   Logout from Account
                 </button>
-                
+
                 <p className="text-sm text-gray-500 text-center">
                   You will be redirected to the login page
                 </p>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

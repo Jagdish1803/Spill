@@ -4,7 +4,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { formatMessageTime } from "../../lib/utils";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./MessageSkeleton";
-import { User, Phone, Video, MoreHorizontal, ArrowDown } from "lucide-react";
+import { User, Phone, Video, MoreHorizontal, ArrowDown, Check, CheckCheck } from "lucide-react";
 
 const ChatContainer = () => {
   const {
@@ -23,174 +23,168 @@ const ChatContainer = () => {
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [lastMessageCount, setLastMessageCount] = useState(0);
 
-  const isOnline = useMemo(() => 
-    onlineUsers.includes(selectedUser?._id), 
+  const isOnline = useMemo(
+    () => onlineUsers.includes(selectedUser?._id),
     [onlineUsers, selectedUser?._id]
   );
-  
-  const isTyping = useMemo(() => 
-    typingUsers[selectedUser?._id], 
+
+  const isTyping = useMemo(
+    () => typingUsers[selectedUser?._id],
     [typingUsers, selectedUser?._id]
   );
 
   // Fetch messages when user changes
   useEffect(() => {
-    if (selectedUser?._id) {
-      getMessages(selectedUser._id);
-    }
+    if (selectedUser?._id) getMessages(selectedUser._id);
   }, [selectedUser?._id, getMessages]);
 
   // Subscribe to real-time messages
   useEffect(() => {
-    if (selectedUser?._id) {
-      subscribeToMessages();
-    }
-
-    return () => {
-      unsubscribeFromMessages();
-    };
+    if (selectedUser?._id) subscribeToMessages();
+    return () => unsubscribeFromMessages();
   }, [selectedUser?._id, subscribeToMessages, unsubscribeFromMessages]);
 
-  // Auto scroll to bottom with performance optimization
+  // Scroll to bottom
   const scrollToBottom = useCallback((behavior = "smooth") => {
-    if (messageEndRef.current) {
-      messageEndRef.current.scrollIntoView({ 
-        behavior,
-        block: "end"
-      });
-    }
+    messageEndRef.current?.scrollIntoView({ behavior, block: "end" });
   }, []);
 
-  // Handle new messages scrolling
+  // Auto-scroll on new messages
   useEffect(() => {
-    const newMessageCount = messages.length;
-    const hasNewMessages = newMessageCount > lastMessageCount;
-    
-    if (hasNewMessages && isNearBottom) {
-      // Use immediate scroll for better UX on new messages
-      requestAnimationFrame(() => scrollToBottom("auto"));
-    }
-    
-    setLastMessageCount(newMessageCount);
+    const newCount = messages.length;
+    const hasNew = newCount > lastMessageCount;
+    if (hasNew && isNearBottom) requestAnimationFrame(() => scrollToBottom("auto"));
+    setLastMessageCount(newCount);
   }, [messages.length, isNearBottom, lastMessageCount, scrollToBottom]);
 
-  // Optimized scroll handler with throttling
+  // Scroll handler
   const handleScroll = useCallback(() => {
     if (!chatContainerRef.current) return;
-    
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    
-    setIsNearBottom(distanceFromBottom < 100);
-    setShowScrollButton(distanceFromBottom > 200);
+    const distance = scrollHeight - scrollTop - clientHeight;
+    setIsNearBottom(distance < 100);
+    setShowScrollButton(distance > 200);
   }, []);
 
-  // Throttled scroll event listener
+  // Attach throttled scroll listener
   useEffect(() => {
-    const chatContainer = chatContainerRef.current;
-    if (!chatContainer) return;
-
+    const chatEl = chatContainerRef.current;
+    if (!chatEl) return;
     let timeoutId = null;
-    const throttledScroll = () => {
-      if (timeoutId === null) {
+    const throttled = () => {
+      if (!timeoutId) {
         timeoutId = setTimeout(() => {
           handleScroll();
           timeoutId = null;
-        }, 16); // ~60fps
+        }, 16);
       }
     };
-
-    chatContainer.addEventListener('scroll', throttledScroll, { passive: true });
+    chatEl.addEventListener("scroll", throttled, { passive: true });
     return () => {
-      chatContainer.removeEventListener('scroll', throttledScroll);
+      chatEl.removeEventListener("scroll", throttled);
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [handleScroll]);
 
-  // Memoized message bubble component
-  const MessageBubble = useCallback(({ message, isOwn, showAvatar, showTime }) => (
-    <div className={`flex items-end gap-2 mb-3 ${isOwn ? "flex-row-reverse" : ""} animate-fade-in`}>
-      {/* Avatar */}
-      {showAvatar && (
-        <img
-          src={isOwn ? authUser?.profilePic || "/avatar.png" : selectedUser?.profilePic || "/avatar.png"}
-          alt="Profile"
-          className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 flex-shrink-0"
-          loading="lazy"
-          decoding="async"
-        />
-      )}
-      {!showAvatar && <div className="w-8 h-8 flex-shrink-0" />}
-      
-      {/* Message bubble */}
-      <div className={`flex flex-col max-w-[280px] sm:max-w-xs lg:max-w-md ${isOwn ? "items-end" : "items-start"}`}>
-        {showTime && (
-          <div className={`flex items-center gap-2 mb-1 px-1 ${isOwn ? "flex-row-reverse" : ""}`}>
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-              {isOwn ? "You" : selectedUser?.fullname}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-500">
-              {formatMessageTime(message.createdAt)}
-            </span>
-          </div>
+  // Message bubble
+  const MessageBubble = useCallback(
+    ({ message, isOwn, showAvatar, showTime }) => (
+      <div
+        className={`flex items-end gap-2 mb-3 ${isOwn ? "flex-row-reverse" : ""} animate-fade-in`}
+      >
+        {showAvatar ? (
+          <img
+            src={
+              isOwn
+                ? authUser?.profilePic || "/avatar.png"
+                : selectedUser?.profilePic || "/avatar.png"
+            }
+            alt="Profile"
+            className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 flex-shrink-0"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-8 h-8 flex-shrink-0" />
         )}
-        
+
         <div
-          className={`rounded-2xl px-4 py-2.5 max-w-full contain-paint ${
-            isOwn
-              ? "bg-blue-500 text-white rounded-br-md shadow-sm"
-              : "bg-white dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-600 rounded-bl-md shadow-sm"
+          className={`flex flex-col max-w-[280px] sm:max-w-xs lg:max-w-md ${
+            isOwn ? "items-end" : "items-start"
           }`}
         >
-          {message.image && (
-            <img
-              src={message.image}
-              alt="Attachment"
-              className="max-w-full h-auto rounded-lg mb-2 cursor-pointer hover:opacity-90 transition-opacity crisp-edges"
-              onClick={() => window.open(message.image, '_blank')}
-              loading="lazy"
-              decoding="async"
-            />
+          {showTime && (
+            <div
+              className={`flex items-center gap-2 mb-1 px-1 ${
+                isOwn ? "flex-row-reverse" : ""
+              }`}
+            >
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                {isOwn ? "You" : selectedUser?.fullname}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-500">
+                {formatMessageTime(message.createdAt)}
+              </span>
+            </div>
           )}
-          {message.text && (
-            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
-              {message.text}
-            </p>
+
+          <div
+            className={`rounded-2xl px-4 py-2.5 shadow-sm ${
+              isOwn
+                ? "bg-blue-500 text-white rounded-br-md"
+                : "bg-white dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-600 rounded-bl-md"
+            }`}
+          >
+            {message.image && (
+              <img
+                src={message.image}
+                alt={message.text || "Image attachment"}
+                className="max-w-full h-auto rounded-lg mb-2 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => window.open(message.image, "_blank")}
+                loading="lazy"
+              />
+            )}
+            {message.text && (
+              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                {message.text}
+              </p>
+            )}
+          </div>
+
+          {isOwn && (
+            <div className="flex items-center gap-1 mt-1 px-1 text-xs text-gray-400">
+              {message.isRead ? <CheckCheck size={14} /> : <Check size={14} />}
+              {message.isRead ? "Read" : "Sent"}
+            </div>
           )}
         </div>
-        
-        {isOwn && (
-          <div className="flex items-center gap-1 mt-1 px-1">
-            <span className="text-xs text-gray-400">
-              ✓ {message.isRead ? "Read" : "Sent"}
-            </span>
-          </div>
-        )}
       </div>
-    </div>
-  ), [authUser?.profilePic, selectedUser?.fullname, selectedUser?.profilePic]);
+    ),
+    [authUser?.profilePic, selectedUser?.fullname, selectedUser?.profilePic]
+  );
 
-  // Optimized message list with memoization
-  const messageList = useMemo(() => {
-    return messages.map((message, index) => {
-      const isOwn = message.senderId === authUser?._id;
-      const prevMessage = messages[index - 1];
-      const showAvatar = !prevMessage || prevMessage.senderId !== message.senderId;
-      const showTime = !prevMessage || 
-        prevMessage.senderId !== message.senderId || 
-        new Date(message.createdAt) - new Date(prevMessage.createdAt) > 300000; // 5 minutes
-
-      return (
-        <MessageBubble
-          key={message._id}
-          message={message}
-          isOwn={isOwn}
-          showAvatar={showAvatar}
-          showTime={showTime}
-        />
-      );
-    });
-  }, [messages, authUser?._id, MessageBubble]);
+  // Build message list
+  const messageList = useMemo(
+    () =>
+      messages.map((msg, i) => {
+        const isOwn = msg.senderId === authUser?._id;
+        const prev = messages[i - 1];
+        const showAvatar = !prev || prev.senderId !== msg.senderId;
+        const showTime =
+          !prev ||
+          prev.senderId !== msg.senderId ||
+          new Date(msg.createdAt) - new Date(prev.createdAt) > 300000;
+        return (
+          <MessageBubble
+            key={msg._id}
+            message={msg}
+            isOwn={isOwn}
+            showAvatar={showAvatar}
+            showTime={showTime}
+          />
+        );
+      }),
+    [messages, authUser?._id, MessageBubble]
+  );
 
   if (isMessagesLoading) {
     return (
@@ -211,7 +205,7 @@ const ChatContainer = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      {/* Header - Hidden on mobile, handled by HomePage */}
+      {/* Header */}
       <div className="hidden md:flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -220,7 +214,6 @@ const ChatContainer = () => {
               alt={selectedUser?.fullname || "User"}
               className="w-10 h-10 object-cover rounded-full border-2 border-gray-200 dark:border-gray-600"
               loading="lazy"
-              decoding="async"
             />
             {isOnline && (
               <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></span>
@@ -236,8 +229,8 @@ const ChatContainer = () => {
                   <span className="animate-pulse">Typing</span>
                   <span className="flex gap-1">
                     <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce"></span>
-                    <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
-                    <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                    <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce delay-100"></span>
+                    <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce delay-200"></span>
                   </span>
                 </span>
               ) : isOnline ? "Online" : "Offline"}
@@ -246,23 +239,24 @@ const ChatContainer = () => {
         </div>
 
         <div className="flex items-center gap-1">
-          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors touch-target">
+          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
             <Phone className="w-5 h-5" />
           </button>
-          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors touch-target">
+          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
             <Video className="w-5 h-5" />
           </button>
-          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors touch-target">
+          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
             <MoreHorizontal className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* Messages Container */}
-      <div 
+      {/* Messages */}
+      <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-1 bg-gray-50 dark:bg-gray-900 custom-scrollbar will-change-scroll relative mobile-optimized"
-        style={{ scrollBehavior: 'smooth' }}
+        className="flex-1 overflow-y-auto p-4 space-y-1 bg-gray-50 dark:bg-gray-900 custom-scrollbar relative"
+        role="log"
+        aria-live="polite"
       >
         {messages.length === 0 ? (
           <div className="text-center py-12">
@@ -272,43 +266,43 @@ const ChatContainer = () => {
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               No messages yet
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+            <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-4">
               Send a message to start your conversation with {selectedUser?.fullname}
             </p>
+            <button
+              onClick={() => scrollToBottom("smooth")}
+              className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600"
+            >
+              Say Hi 👋
+            </button>
           </div>
         ) : (
           <>
             {messageList}
-            
-            {/* Typing indicator */}
             {isTyping && (
               <div className="flex items-center gap-2 mb-3 animate-fade-in">
                 <img
                   src={selectedUser?.profilePic || "/avatar.png"}
                   alt="Profile"
                   className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600"
-                  loading="lazy"
-                  decoding="async"
                 />
-                <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl rounded-bl-md px-4 py-2.5 shadow-sm">
+                <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl px-4 py-2.5 shadow-sm">
                   <div className="flex gap-1">
                     <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100"></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200"></span>
                   </div>
                 </div>
               </div>
             )}
-            
             <div ref={messageEndRef} />
           </>
         )}
 
-        {/* Scroll to bottom button */}
         {showScrollButton && (
           <button
             onClick={() => scrollToBottom("smooth")}
-            className="fixed bottom-24 right-4 md:right-6 z-10 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all duration-200 transform hover:scale-105 touch-target"
+            className="fixed bottom-24 right-4 md:right-6 z-10 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all hover:scale-105"
             aria-label="Scroll to bottom"
           >
             <ArrowDown className="w-5 h-5" />

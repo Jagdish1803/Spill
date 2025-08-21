@@ -6,29 +6,36 @@ export const useThemeStore = create(
     (set, get) => ({
       theme: "light",
       isDarkMode: false,
-      
-      toggleTheme: () => {
-        const { isDarkMode } = get();
-        const newTheme = !isDarkMode;
+
+      // Set theme explicitly
+      setTheme: (mode) => {
+        const isDark = mode === "dark";
         set({ 
-          isDarkMode: newTheme,
-          theme: newTheme ? "dark" : "light"
+          theme: mode, 
+          isDarkMode: isDark 
         });
-        
-        // Update document class
-        if (newTheme) {
+
+        if (isDark) {
           document.documentElement.classList.add("dark");
         } else {
           document.documentElement.classList.remove("dark");
         }
       },
-      
-      initializeTheme: () => {
+
+      // Toggle theme
+      toggleTheme: () => {
         const { isDarkMode } = get();
-        if (isDarkMode) {
-          document.documentElement.classList.add("dark");
+        get().setTheme(isDarkMode ? "light" : "dark");
+      },
+
+      // Initialize with saved or system preference
+      initializeTheme: () => {
+        const savedTheme = get().theme;
+        if (savedTheme) {
+          get().setTheme(savedTheme);
         } else {
-          document.documentElement.classList.remove("dark");
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          get().setTheme(prefersDark ? "dark" : "light");
         }
       },
     }),
