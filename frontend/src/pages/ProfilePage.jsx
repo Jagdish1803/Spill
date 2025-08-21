@@ -15,12 +15,17 @@ import {
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+};
+
 const ProfilePage = () => {
   const { authUser, logout, updateProfile, isUpdatingProfile } = useAuthStore();
   const [selectedImg, setSelectedImg] = useState(null);
   const [showUpdateButton, setShowUpdateButton] = useState(false);
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -28,7 +33,6 @@ const ProfilePage = () => {
       toast.error("Image size should be less than 5MB");
       return;
     }
-
     if (!file.type.startsWith("image/")) {
       toast.error("Please select a valid image file");
       return;
@@ -36,19 +40,14 @@ const ProfilePage = () => {
 
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = async () => {
-      const base64Image = reader.result;
-      setSelectedImg(base64Image);
+    reader.onload = () => {
+      setSelectedImg(reader.result);
       setShowUpdateButton(true);
     };
   };
 
   const handleUpdateProfile = async () => {
-    if (!selectedImg) {
-      toast.error("No image selected");
-      return;
-    }
-
+    if (!selectedImg) return toast.error("No image selected");
     try {
       await updateProfile({ profilePic: selectedImg });
       setShowUpdateButton(false);
@@ -63,18 +62,10 @@ const ProfilePage = () => {
     setShowUpdateButton(false);
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
   if (!authUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="size-8 animate-spin" />
+        <Loader2 className="size-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -82,15 +73,15 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="size-10 rounded-xl bg-blue-100 flex items-center justify-center">
               <MessageSquare className="size-5 text-blue-700" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Profile</h1>
-              <p className="text-gray-600">Your profile information</p>
+              <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+              <p className="text-gray-600">Manage your profile details</p>
             </div>
           </div>
         </div>
@@ -101,17 +92,18 @@ const ProfilePage = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Avatar Card */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            variants={fadeInUp}
+            initial="hidden"
+            animate="visible"
             className="lg:col-span-1"
           >
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white rounded-2xl shadow-md border p-6">
               <div className="text-center">
                 <div className="relative mx-auto w-32 h-32 mb-4 group">
                   <img
                     src={selectedImg || authUser.profilePic || "/avatar.png"}
                     alt="Profile"
-                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow-sm"
                   />
                   <label
                     htmlFor="avatar-upload"
@@ -137,10 +129,12 @@ const ProfilePage = () => {
 
                 {showUpdateButton && (
                   <div className="flex gap-2 justify-center">
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={handleUpdateProfile}
                       disabled={isUpdatingProfile}
-                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm transition"
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm shadow-sm transition"
                     >
                       {isUpdatingProfile ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -148,16 +142,18 @@ const ProfilePage = () => {
                         <Save className="w-4 h-4" />
                       )}
                       {isUpdatingProfile ? "Updating..." : "Save"}
-                    </button>
+                    </motion.button>
 
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={handleCancelUpdate}
                       disabled={isUpdatingProfile}
-                      className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm transition"
+                      className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm shadow-sm transition"
                     >
                       <X className="w-4 h-4" />
                       Cancel
-                    </button>
+                    </motion.button>
                   </div>
                 )}
               </div>
@@ -168,9 +164,10 @@ const ProfilePage = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Info */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl shadow-sm border p-6"
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              className="bg-white rounded-2xl shadow-md border p-6"
             >
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <User className="size-5 text-blue-600" />
@@ -179,7 +176,9 @@ const ProfilePage = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Full Name
+                  </label>
                   <div className="flex border p-3 rounded-md items-center bg-gray-50">
                     <User className="w-5 h-5 text-gray-400 mr-3" />
                     <input
@@ -192,7 +191,7 @@ const ProfilePage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block text-sm font-medium text-gray-700">
                     Email Address
                   </label>
                   <div className="flex border p-3 rounded-md items-center bg-gray-50">
@@ -210,9 +209,10 @@ const ProfilePage = () => {
 
             {/* Account Info */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl shadow-sm border p-6"
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              className="bg-white rounded-2xl shadow-md border p-6"
             >
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <Shield className="size-5 text-blue-600" />
@@ -248,21 +248,22 @@ const ProfilePage = () => {
 
             {/* Actions */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl shadow-sm border p-6"
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              className="bg-white rounded-2xl shadow-md border p-6"
             >
               <h2 className="text-xl font-semibold mb-6">Actions</h2>
-
               <div className="space-y-4">
-                <button
-                  onClick={handleLogout}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-md transition flex items-center justify-center gap-2"
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={logout}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-md shadow-sm transition flex items-center justify-center gap-2"
                 >
                   <LogOut className="size-5" />
                   Logout from Account
-                </button>
-
+                </motion.button>
                 <p className="text-sm text-gray-500 text-center">
                   You will be redirected to the login page
                 </p>
