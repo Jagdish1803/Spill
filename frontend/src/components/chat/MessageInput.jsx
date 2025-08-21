@@ -11,6 +11,7 @@ const MessageInput = ({ scrollToBottom }) => {
   const [images, setImages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -21,46 +22,58 @@ const MessageInput = ({ scrollToBottom }) => {
   // Auto-resize textarea
   const adjustTextareaHeight = useCallback(() => {
     const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`; // max 5 lines
-    }
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
   }, []);
 
   // Handle image selection
   const handleFiles = useCallback((files) => {
+    const validFiles = [];
     for (let file of files) {
       if (file.size > MAX_FILE_SIZE) {
-        toast.error("Image must be < 5MB");
+        toast.error("Image must be less than 5MB");
         continue;
       }
       if (!file.type.startsWith("image/")) {
         toast.error("Invalid file type");
         continue;
       }
+      validFiles.push(file);
+    }
 
+    validFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => setImages((prev) => [...prev, reader.result]);
       reader.readAsDataURL(file);
-    }
+    });
   }, []);
 
   const handleImageChange = useCallback((e) => handleFiles(e.target.files), [handleFiles]);
   const handleDrop = useCallback((e) => {
     e.preventDefault();
+    setDragOver(false);
     handleFiles(e.dataTransfer.files);
   }, [handleFiles]);
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    setDragOver(true);
+  }, []);
+  const handleDragLeave = useCallback(() => setDragOver(false), []);
 
-  const removeImage = useCallback((idx) => setImages((prev) => prev.filter((_, i) => i !== idx)), []);
+  const removeImage = useCallback((idx) => {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
+    adjustTextareaHeight();
+  }, [adjustTextareaHeight]);
 
-  // Handle text input and typing indicator
+  // Typing indicator
   const handleTextChange = useCallback(
     (e) => {
-      const newText = e.target.value;
-      if (newText.length <= MAX_CHAR_LIMIT) setText(newText);
+      const value = e.target.value;
+      if (value.length <= MAX_CHAR_LIMIT) setText(value);
       adjustTextareaHeight();
 
-      if (selectedUser && newText.trim() && !isTyping) {
+      if (selectedUser && value.trim() && !isTyping) {
         setIsTyping(true);
         sendTypingIndicator(selectedUser._id, true);
       }
@@ -73,15 +86,14 @@ const MessageInput = ({ scrollToBottom }) => {
         }
       }, 1000);
     },
-    [selectedUser, isTyping, sendTypingIndicator, adjustTextareaHeight]
+    [adjustTextareaHeight, isTyping, selectedUser, sendTypingIndicator]
   );
 
-  // Handle sending message
+  // Send message
   const handleSendMessage = useCallback(
     async (e) => {
       e.preventDefault();
-      const messageText = text.trim();
-      if (!messageText && images.length === 0) return;
+      if (!text.trim() && images.length === 0) return;
 
       if (isTyping && selectedUser) {
         setIsTyping(false);
@@ -90,22 +102,17 @@ const MessageInput = ({ scrollToBottom }) => {
       }
 
       try {
-        await sendMessage({ text: messageText, images });
-
-        // Reset input
+        await sendMessage({ text: text.trim(), images });
         setText("");
         setImages([]);
         if (fileInputRef.current) fileInputRef.current.value = "";
-        if (textareaRef.current) textareaRef.current.style.height = "auto";
-
-        // Scroll to bottom after sending
+        adjustTextareaHeight();
         scrollToBottom?.("smooth");
-      } catch (err) {
-        console.error("Send failed:", err);
-        toast.error("Failed to send");
+      } catch {
+        toast.error("Failed to send message");
       }
     },
-    [text, images, isTyping, selectedUser, sendMessage, sendTypingIndicator, scrollToBottom]
+    [text, images, isTyping, selectedUser, sendMessage, sendTypingIndicator, scrollToBottom, adjustTextareaHeight]
   );
 
   const handleKeyPress = useCallback(
@@ -118,17 +125,15 @@ const MessageInput = ({ scrollToBottom }) => {
     [handleSendMessage]
   );
 
-  // Clean up typing indicator on unmount
+  // Clean up typing indicator
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      if (isTyping && selectedUser) {
-        sendTypingIndicator(selectedUser._id, false);
-      }
+      if (isTyping && selectedUser) sendTypingIndicator(selectedUser._id, false);
     };
   }, [isTyping, selectedUser, sendTypingIndicator]);
 
-  // Focus textarea when user changes
+  // Focus textarea on user change
   useEffect(() => {
     if (selectedUser && textareaRef.current) textareaRef.current.focus();
   }, [selectedUser]);
@@ -137,23 +142,20 @@ const MessageInput = ({ scrollToBottom }) => {
 
   return (
     <div
-      className="p-4 bg-white dark:bg-gray-900 border-t dark:border-gray-700 transition-all"
-      onDragOver={(e) => e.preventDefault()}
+      className={`p-4 bg-white dark:bg-gray-900 border-t dark:border-gray-700 transition-all ${dragOver ? "bg-gray-100 dark:bg-gray-800" : ""}`}
+      onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onDragLeave={handleDragLeave}
     >
-      {/* Image Previews */}
+      {/* Image previews */}
       {images.length > 0 && (
         <div className="mb-3 flex gap-2 flex-wrap">
-          {images.map((img, i) => (
-            <div key={i} className="relative group">
-              <img
-                src={img}
-                alt={`Preview ${i + 1}`}
-                className="w-20 h-20 object-cover rounded-xl border shadow-sm transition-transform group-hover:scale-105"
-              />
+          {images.map((img, idx) => (
+            <div key={idx} className="relative group">
+              <img src={img} alt={`Preview ${idx + 1}`} className="w-20 h-20 object-cover rounded-xl border shadow-sm transition-transform group-hover:scale-105" />
               <button
                 type="button"
-                onClick={() => removeImage(i)}
+                onClick={() => removeImage(idx)}
                 className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-md transition"
               >
                 <X className="w-3 h-3" />
@@ -167,40 +169,25 @@ const MessageInput = ({ scrollToBottom }) => {
         <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
-            className="w-full px-4 py-3 pr-12 border rounded-2xl resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-            placeholder="Type a message..."
             value={text}
             onChange={handleTextChange}
             onKeyPress={handleKeyPress}
-            disabled={isSendingMessage || isUploading}
+            placeholder="Type a message..."
+            className="w-full px-4 py-3 pr-12 border rounded-2xl resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             rows={1}
             style={{ minHeight: "48px", maxHeight: "120px" }}
+            disabled={isSendingMessage || isUploading}
           />
-          {text.length > 1500 && (
-            <div className="absolute bottom-1 right-3 text-xs text-gray-400">
-              {text.length}/{MAX_CHAR_LIMIT}
-            </div>
-          )}
+          {text.length > 1500 && <div className="absolute bottom-1 right-3 text-xs text-gray-400">{text.length}/{MAX_CHAR_LIMIT}</div>}
         </div>
 
-        {/* File Input */}
-        <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageChange} multiple />
+        <input type="file" accept="image/*" multiple className="hidden" ref={fileInputRef} onChange={handleImageChange} />
 
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="p-3 text-gray-500 hover:text-blue-600 rounded-xl transition"
-          title="Attach Image"
-        >
+        <button type="button" onClick={() => fileInputRef.current?.click()} className="p-3 text-gray-500 hover:text-blue-600 rounded-xl transition" title="Attach Image">
           <Image className="w-5 h-5" />
         </button>
 
-        <button
-          type="submit"
-          className="p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition disabled:opacity-50 shadow-md"
-          title="Send Message"
-          disabled={!canSend}
-        >
+        <button type="submit" disabled={!canSend} className="p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition disabled:opacity-50 shadow-md" title="Send Message">
           {isSendingMessage ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Send className="w-5 h-5" />}
         </button>
       </form>

@@ -6,11 +6,12 @@ import { motion } from "framer-motion";
 
 const SettingPage = () => {
   const { authUser, updatePassword } = useAuthStore();
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
   });
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -36,11 +37,13 @@ const SettingPage = () => {
     if (formData.newPassword !== formData.confirmPassword) {
       return toast.error("Passwords do not match!");
     }
+
     try {
       setLoading(true);
       await updatePassword(formData.currentPassword, formData.newPassword);
       toast.success("Password updated successfully!");
       setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setShowPasswords({ currentPassword: false, newPassword: false, confirmPassword: false });
     } catch (err) {
       toast.error(err.message || "Error updating password");
     } finally {
@@ -78,6 +81,7 @@ const SettingPage = () => {
           <Lock className="w-5 h-5 text-blue-600" />
           Change Password
         </h2>
+
         <form onSubmit={handlePasswordUpdate} className="mt-4 space-y-4">
           {["currentPassword", "newPassword", "confirmPassword"].map((field) => (
             <div key={field} className="relative">
@@ -89,26 +93,24 @@ const SettingPage = () => {
                   : "Confirm Password"}
               </label>
               <input
-                type={showPasswords[field.replace("Password", "")] ? "text" : "password"}
+                type={showPasswords[field] ? "text" : "password"}
                 value={formData[field]}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, [field]: e.target.value }))
                 }
                 className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 required
+                disabled={loading}
               />
               <motion.button
                 type="button"
                 whileTap={{ rotate: 180 }}
                 transition={{ duration: 0.3 }}
-                onClick={() => togglePasswordVisibility(field.replace("Password", ""))}
+                onClick={() => togglePasswordVisibility(field)}
+                aria-label={showPasswords[field] ? "Hide password" : "Show password"}
                 className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
               >
-                {showPasswords[field.replace("Password", "")] ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showPasswords[field] ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </motion.button>
             </div>
           ))}
@@ -118,6 +120,10 @@ const SettingPage = () => {
               type="reset"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                setShowPasswords({ currentPassword: false, newPassword: false, confirmPassword: false });
+              }}
               className="px-4 py-2 rounded-md border text-gray-600 hover:bg-gray-100"
             >
               Cancel
@@ -176,10 +182,10 @@ const SettingPage = () => {
         <h2 className="text-xl font-semibold text-gray-800">Account Information</h2>
         <div className="mt-4 space-y-2">
           <p className="text-gray-600">
-            <span className="font-medium">Username:</span> {authUser.username}
+            <span className="font-medium">Username:</span> {authUser.username || "N/A"}
           </p>
           <p className="text-gray-600">
-            <span className="font-medium">Email:</span> {authUser.email}
+            <span className="font-medium">Email:</span> {authUser.email || "N/A"}
           </p>
         </div>
       </motion.div>

@@ -19,9 +19,7 @@ const HomePage = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
 
-      if (!mobile) {
-        setShowSidebar(false);
-      }
+      if (!mobile) setShowSidebar(false);
     };
 
     checkScreenSize();
@@ -32,21 +30,15 @@ const HomePage = () => {
 
   // Close sidebar when user is selected on mobile
   useEffect(() => {
-    if (selectedUser && isMobile) {
-      setShowSidebar(false);
-    }
+    if (selectedUser && isMobile) setShowSidebar(false);
   }, [selectedUser, isMobile]);
 
   const handleBackToSidebar = () => {
     setSelectedUser(null);
-    if (isMobile) {
-      setShowSidebar(true);
-    }
+    if (isMobile) setShowSidebar(true);
   };
 
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
-  };
+  const toggleSidebar = () => setShowSidebar(!showSidebar);
 
   if (!authUser) {
     return (

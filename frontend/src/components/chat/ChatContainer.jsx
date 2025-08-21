@@ -17,59 +17,49 @@ const ChatContainer = () => {
     unsubscribeFromMessages,
     typingUsers,
   } = useChatStore();
+
   const { authUser, onlineUsers } = useAuthStore();
 
   const messageEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  const isOnline = useMemo(
-    () => onlineUsers.includes(selectedUser?._id),
-    [onlineUsers, selectedUser?._id]
-  );
+  const isOnline = useMemo(() => onlineUsers.includes(selectedUser?._id), [onlineUsers, selectedUser?._id]);
+  const isTyping = useMemo(() => typingUsers[selectedUser?._id], [typingUsers, selectedUser?._id]);
 
-  const isTyping = useMemo(
-    () => typingUsers[selectedUser?._id],
-    [typingUsers, selectedUser?._id]
-  );
-
-  // Fetch messages when user changes
+  // Fetch messages
   useEffect(() => {
     if (selectedUser?._id) getMessages(selectedUser._id);
   }, [selectedUser?._id, getMessages]);
 
-  // Subscribe to real-time messages
+  // Real-time subscription
   useEffect(() => {
     if (selectedUser?._id) subscribeToMessages();
     return () => unsubscribeFromMessages();
   }, [selectedUser?._id, subscribeToMessages, unsubscribeFromMessages]);
 
-  // Scroll to bottom function
+  // Scroll to bottom
   const scrollToBottom = useCallback((behavior = "smooth") => {
     messageEndRef.current?.scrollIntoView({ behavior, block: "end" });
   }, []);
 
-  // Scroll to bottom when chat opens
   useEffect(() => {
     if (selectedUser?._id) requestAnimationFrame(() => scrollToBottom("auto"));
   }, [selectedUser?._id, scrollToBottom]);
 
-  // Scroll handler for showing scroll button
+  // Scroll button logic
   const handleScroll = useCallback(() => {
     if (!chatContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-    const distance = scrollHeight - scrollTop - clientHeight;
-    setShowScrollButton(distance > 200);
+    setShowScrollButton(scrollHeight - scrollTop - clientHeight > 200);
   }, []);
 
-  // Attach scroll listener
   useEffect(() => {
-    const chatEl = chatContainerRef.current;
-    if (!chatEl) return;
-
-    const throttled = () => requestAnimationFrame(handleScroll);
-    chatEl.addEventListener("scroll", throttled, { passive: true });
-    return () => chatEl.removeEventListener("scroll", throttled);
+    const el = chatContainerRef.current;
+    if (!el) return;
+    const listener = () => requestAnimationFrame(handleScroll);
+    el.addEventListener("scroll", listener, { passive: true });
+    return () => el.removeEventListener("scroll", listener);
   }, [handleScroll]);
 
   // Message bubble
@@ -95,9 +85,7 @@ const ChatContainer = () => {
         <div className={`flex flex-col max-w-[280px] sm:max-w-xs lg:max-w-md ${isOwn ? "items-end" : "items-start"}`}>
           {showTime && (
             <div className={`flex items-center gap-2 mb-1 px-1 ${isOwn ? "flex-row-reverse" : ""}`}>
-              <span className="text-xs font-medium text-gray-600">
-                {isOwn ? "You" : selectedUser?.fullname}
-              </span>
+              <span className="text-xs font-medium text-gray-600">{isOwn ? "You" : selectedUser?.fullname}</span>
               <span className="text-xs text-gray-500">{formatMessageTime(message.createdAt)}</span>
             </div>
           )}
@@ -107,9 +95,7 @@ const ChatContainer = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}
             className={`rounded-2xl px-4 py-2.5 shadow-sm ${
-              isOwn
-                ? "bg-blue-500 text-white rounded-br-md"
-                : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"
+              isOwn ? "bg-blue-500 text-white rounded-br-md" : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"
             }`}
           >
             {message.image && (
@@ -136,39 +122,23 @@ const ChatContainer = () => {
     [authUser?.profilePic, selectedUser?.fullname, selectedUser?.profilePic]
   );
 
-  // Build message list
+  // Message list
   const messageList = useMemo(
     () =>
       messages.map((msg, i) => {
         const isOwn = msg.senderId === authUser?._id;
         const prev = messages[i - 1];
         const showAvatar = !prev || prev.senderId !== msg.senderId;
-        const showTime =
-          !prev || prev.senderId !== msg.senderId || new Date(msg.createdAt) - new Date(prev.createdAt) > 300000;
+        const showTime = !prev || prev.senderId !== msg.senderId || new Date(msg.createdAt) - new Date(prev.createdAt) > 300000;
         return <MessageBubble key={msg._id} message={msg} isOwn={isOwn} showAvatar={showAvatar} showTime={showTime} />;
       }),
     [messages, authUser?._id, MessageBubble]
   );
 
-  if (isMessagesLoading) {
-    return (
-      <div className="flex-1 flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b bg-white">
-          <div className="flex items-center gap-3">
-            <div className="skeleton w-10 h-10 rounded-full"></div>
-            <div>
-              <div className="skeleton h-4 w-32 mb-1"></div>
-              <div className="skeleton h-3 w-16"></div>
-            </div>
-          </div>
-        </div>
-        <MessageSkeleton />
-      </div>
-    );
-  }
+  if (isMessagesLoading) return <MessageSkeleton />;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white">
+    <div className="flex-1 flex flex-col h-full bg-gray-50">
       {/* Header */}
       <div className="hidden md:flex items-center justify-between p-4 border-b bg-white shadow-sm">
         <div className="flex items-center gap-3">
@@ -199,35 +169,20 @@ const ChatContainer = () => {
         </div>
 
         <div className="flex items-center gap-1">
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-            <Phone className="w-5 h-5" />
-          </button>
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-            <Video className="w-5 h-5" />
-          </button>
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
+          <Phone className="w-5 h-5 cursor-pointer text-gray-500 hover:text-gray-700" />
+          <Video className="w-5 h-5 cursor-pointer text-gray-500 hover:text-gray-700" />
+          <MoreHorizontal className="w-5 h-5 cursor-pointer text-gray-500 hover:text-gray-700" />
         </div>
       </div>
 
       {/* Messages */}
-      <div
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-1 bg-gray-50 relative custom-scrollbar"
-        role="log"
-        aria-live="polite"
-      >
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-1 relative custom-scrollbar">
         {messages.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
-              <User className="w-8 h-8 text-blue-600" />
-            </div>
+            <User className="w-16 h-16 mx-auto mb-4 text-blue-600" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
-            <p className="text-gray-500 max-w-sm mx-auto mb-4">
-              Send a message to start your conversation with {selectedUser?.fullname}
-            </p>
-            <button onClick={() => scrollToBottom("smooth")} className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600">
+            <p className="text-gray-500 max-w-sm mx-auto mb-4">Send a message to start your conversation with {selectedUser?.fullname}</p>
+            <button onClick={() => scrollToBottom()} className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600">
               Say Hi 👋
             </button>
           </div>
@@ -237,12 +192,10 @@ const ChatContainer = () => {
             {isTyping && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center gap-2 mb-3">
                 <img src={selectedUser?.profilePic || "/avatar.png"} alt="Profile" className="w-8 h-8 rounded-full object-cover border border-gray-200" />
-                <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2.5 shadow-sm">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100"></span>
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200"></span>
-                  </div>
+                <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2.5 shadow-sm flex gap-1">
+                  <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></span>
+                  <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100"></span>
+                  <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200"></span>
                 </div>
               </motion.div>
             )}
@@ -253,11 +206,11 @@ const ChatContainer = () => {
         <AnimatePresence>
           {showScrollButton && (
             <motion.button
-              onClick={() => scrollToBottom("smooth")}
+              onClick={() => scrollToBottom()}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="fixed bottom-24 right-4 md:right-6 z-10 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all"
+              className="fixed bottom-24 right-6 z-10 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg"
               aria-label="Scroll to bottom"
             >
               <ArrowDown className="w-5 h-5" />

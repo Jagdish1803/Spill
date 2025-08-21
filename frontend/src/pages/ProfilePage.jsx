@@ -65,7 +65,7 @@ const ProfilePage = () => {
   if (!authUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -76,8 +76,8 @@ const ProfilePage = () => {
       <div className="bg-white shadow border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-blue-100 flex items-center justify-center">
-              <MessageSquare className="size-5 text-blue-700" />
+            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-blue-700" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
@@ -170,7 +170,7 @@ const ProfilePage = () => {
               className="bg-white rounded-2xl shadow-md border p-6"
             >
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <User className="size-5 text-blue-600" />
+                <User className="w-5 h-5 text-blue-600" />
                 Basic Information
               </h2>
 
@@ -215,7 +215,7 @@ const ProfilePage = () => {
               className="bg-white rounded-2xl shadow-md border p-6"
             >
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <Shield className="size-5 text-blue-600" />
+                <Shield className="w-5 h-5 text-blue-600" />
                 Account Information
               </h2>
 
@@ -223,7 +223,7 @@ const ProfilePage = () => {
                 <div className="flex justify-between items-center py-3 border-b border-gray-100">
                   <span className="text-gray-600">Member Since</span>
                   <span className="font-medium flex items-center gap-2">
-                    <Calendar className="size-4 text-gray-400" />
+                    <Calendar className="w-4 text-gray-400" />
                     {authUser?.createdAt
                       ? new Date(authUser.createdAt).toLocaleDateString()
                       : "Not available"}
@@ -261,7 +261,7 @@ const ProfilePage = () => {
                   onClick={logout}
                   className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-md shadow-sm transition flex items-center justify-center gap-2"
                 >
-                  <LogOut className="size-5" />
+                  <LogOut className="w-5 h-5" />
                   Logout from Account
                 </motion.button>
                 <p className="text-sm text-gray-500 text-center">

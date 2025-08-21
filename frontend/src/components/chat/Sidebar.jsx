@@ -2,14 +2,15 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useChatStore } from "../../store/useChatStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { Search, Users, X, Menu } from "lucide-react";
+import { motion } from "framer-motion";
 import { formatMessageTime } from "../../lib/utils";
 
 const Sidebar = () => {
-  const { 
-    getUsers, 
-    users, 
-    selectedUser, 
-    setSelectedUser, 
+  const {
+    getUsers,
+    users,
+    selectedUser,
+    setSelectedUser,
     getUnreadCount,
     getLastMessage,
     isUsersLoading,
@@ -27,19 +28,19 @@ const Sidebar = () => {
   // Filter users by search
   const filteredUsers = useMemo(() => {
     if (!searchTerm) return users;
-    return users.filter(user =>
-      user.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    return users.filter(
+      (user) =>
+        user.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [users, searchTerm]);
 
-  // Format message time
   const formatLastMessageTime = useCallback((timestamp) => {
     if (!timestamp) return "";
     const messageDate = new Date(timestamp);
     const now = new Date();
     const diffInHours = (now - messageDate) / (1000 * 60 * 60);
-    
+
     if (diffInHours < 1) return "now";
     if (diffInHours < 24) return formatMessageTime(timestamp);
     if (diffInHours < 48) return "Yesterday";
@@ -53,8 +54,9 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={`h-full transition-[width] duration-300 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex flex-col overflow-hidden
-      ${isOpen ? "w-80 lg:w-72" : "w-16"}`}
+      className={`h-full transition-[width] duration-300 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex flex-col overflow-hidden ${
+        isOpen ? "w-80 lg:w-72" : "w-16"
+      }`}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
@@ -66,9 +68,7 @@ const Sidebar = () => {
           {isOpen && (
             <>
               <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-                Contacts
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Contacts</h2>
               <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full">
                 {filteredUsers.length}
               </span>
@@ -85,7 +85,7 @@ const Sidebar = () => {
             <input
               type="text"
               placeholder="Search contacts..."
-              className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -106,9 +106,7 @@ const Sidebar = () => {
         {filteredUsers.length === 0 && !isUsersLoading ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 animate-fadeIn">
             <Users className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-              No contacts found
-            </h3>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">No contacts found</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {searchTerm ? "Try adjusting your search." : "Start a new chat."}
             </p>
@@ -122,11 +120,16 @@ const Sidebar = () => {
               const isSelected = selectedUser?._id === user._id;
 
               return (
-                <button
+                <motion.button
                   key={user._id}
                   onClick={() => setSelectedUser(user)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 transition-colors relative focus:outline-none
-                    ${isSelected ? "bg-blue-50 dark:bg-blue-900/20" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 transition-colors relative focus:outline-none ${
+                    isSelected
+                      ? "bg-blue-50 dark:bg-blue-900/20"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {/* Avatar */}
                   <div className="relative flex-shrink-0">
@@ -145,11 +148,13 @@ const Sidebar = () => {
                   {isOpen && (
                     <div className="flex-1 text-left min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className={`font-medium truncate text-sm ${
-                          unreadCount > 0
-                            ? "text-gray-900 dark:text-white"
-                            : "text-gray-700 dark:text-gray-300"
-                        }`}>
+                        <p
+                          className={`font-medium truncate text-sm ${
+                            unreadCount > 0
+                              ? "text-gray-900 dark:text-white"
+                              : "text-gray-700 dark:text-gray-300"
+                          }`}
+                        >
                           {user.fullname}
                         </p>
                         {lastMessage && (
@@ -160,11 +165,13 @@ const Sidebar = () => {
                       </div>
 
                       <div className="flex items-center justify-between mt-1">
-                        <p className={`text-xs truncate ${
-                          unreadCount > 0
-                            ? "font-medium text-gray-900 dark:text-white"
-                            : "text-gray-500 dark:text-gray-400"
-                        }`}>
+                        <p
+                          className={`text-xs truncate ${
+                            unreadCount > 0
+                              ? "font-medium text-gray-900 dark:text-white"
+                              : "text-gray-500 dark:text-gray-400"
+                          }`}
+                        >
                           {lastMessage?.text
                             ? truncateMessage(lastMessage.text)
                             : lastMessage?.image
@@ -181,7 +188,7 @@ const Sidebar = () => {
                       </div>
                     </div>
                   )}
-                </button>
+                </motion.button>
               );
             })}
           </div>

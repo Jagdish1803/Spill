@@ -19,7 +19,7 @@ class ErrorBoundary extends React.Component {
       console.error("Error caught by boundary:", error, errorInfo);
     }
 
-    // 📡 Example: send error to monitoring service (only in production)
+    // 📡 Example: send error to monitoring service in production
     if (process.env.NODE_ENV === "production") {
       // sendToSentry(error, errorInfo);
     }
@@ -41,8 +41,8 @@ class ErrorBoundary extends React.Component {
           className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4"
         >
           <div className="text-center max-w-md">
-            {/* Icon */}
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+            {/* Animated Icon */}
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center animate-pulse">
               <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
 
@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component {
             </p>
 
             {/* Actions */}
-            <div className="flex justify-center gap-3">
+            <div className="flex justify-center gap-3 flex-wrap">
               <button
                 onClick={this.handleReload}
                 className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"

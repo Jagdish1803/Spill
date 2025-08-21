@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { MessageCircle } from "lucide-react";
 
 const AuthImagePattern = ({ title, subtitle }) => {
   // Message animation variants
@@ -15,7 +14,6 @@ const AuthImagePattern = ({ title, subtitle }) => {
   return (
     <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800 p-12 min-h-screen">
       <div className="max-w-4xl text-center space-y-12 relative">
-        
         {/* Animated Chat Bubbles */}
         <div className="space-y-6 text-left max-w-sm mx-auto">
           {[
@@ -37,12 +35,13 @@ const AuthImagePattern = ({ title, subtitle }) => {
                     ? "bg-gradient-to-tr from-indigo-500 to-purple-600 text-white"
                     : "bg-gray-800 text-gray-200"
                 }`}
+                style={{ animation: msg.typing ? "float 1s ease-in-out infinite" : "none" }}
               >
                 {msg.typing ? (
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-400"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0s" }}></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></span>
                   </div>
                 ) : (
                   msg.text
@@ -62,6 +61,14 @@ const AuthImagePattern = ({ title, subtitle }) => {
           </p>
         </div>
       </div>
+
+      {/* Floating animation keyframes */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+      `}</style>
     </div>
   );
 };

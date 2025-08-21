@@ -60,11 +60,9 @@ const LoginPage = () => {
           {/* Logo + Title */}
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2">
-              {/* Static Logo */}
-              <div className="size-12 rounded-xl bg-blue-100 flex items-center justify-center shadow-md">
-                <MessageSquare className="size-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shadow-md">
+                <MessageSquare className="w-6 h-6 text-blue-600" />
               </div>
-
               <h1 className="text-2xl font-bold mt-2 text-gray-800">
                 Welcome Back
               </h1>
@@ -128,9 +126,9 @@ const LoginPage = () => {
                   disabled={isLoggingIn}
                 >
                   {showPassword ? (
-                    <EyeOff className="size-5 text-gray-400" />
+                    <EyeOff className="w-5 h-5 text-gray-400" />
                   ) : (
-                    <Eye className="size-5 text-gray-400" />
+                    <Eye className="w-5 h-5 text-gray-400" />
                   )}
                 </button>
               </div>
@@ -142,7 +140,7 @@ const LoginPage = () => {
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 font-medium shadow-md"
               disabled={isLoggingIn}
             >
-              {isLoggingIn && <Loader2 className="size-5 animate-spin" />}
+              {isLoggingIn && <Loader2 className="w-5 h-5 animate-spin" />}
               <span>{isLoggingIn ? "Signing in..." : "Sign In"}</span>
             </button>
           </motion.form>

@@ -70,7 +70,6 @@ const Navbar = () => {
 
   const toggleMobileMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  // Avatar fallback (initials if no image)
   const renderAvatar = () => {
     if (authUser?.profilePic) {
       return (
@@ -93,10 +92,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav
-        role="navigation"
-        className="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm"
-      >
+      <nav className="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -139,17 +135,8 @@ const Navbar = () => {
                   <button
                     onClick={toggleTheme}
                     className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    aria-label={
-                      theme === "dark"
-                        ? "Switch to light mode"
-                        : "Switch to dark mode"
-                    }
                   >
-                    {theme === "dark" ? (
-                      <Sun className="w-5 h-5" />
-                    ) : (
-                      <Moon className="w-5 h-5" />
-                    )}
+                    {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                   </button>
 
                   <button
@@ -161,7 +148,7 @@ const Navbar = () => {
                   </button>
                 </div>
 
-                {/* Mobile menu button and user info */}
+                {/* Mobile menu button */}
                 <div className="md:hidden flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     {renderAvatar()}
@@ -169,18 +156,13 @@ const Navbar = () => {
                       {authUser.fullname}
                     </span>
                   </div>
-
                   <button
                     onClick={toggleMobileMenu}
                     aria-expanded={isMenuOpen}
                     aria-label={isMenuOpen ? "Close menu" : "Open menu"}
                     className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    {isMenuOpen ? (
-                      <X className="w-6 h-6" />
-                    ) : (
-                      <Menu className="w-6 h-6" />
-                    )}
+                    {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                   </button>
                 </div>
               </>
@@ -189,17 +171,8 @@ const Navbar = () => {
                 <button
                   onClick={toggleTheme}
                   className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                  aria-label={
-                    theme === "dark"
-                      ? "Switch to light mode"
-                      : "Switch to dark mode"
-                  }
                 >
-                  {theme === "dark" ? (
-                    <Sun className="w-5 h-5" />
-                  ) : (
-                    <Moon className="w-5 h-5" />
-                  )}
+                  {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </button>
               </div>
             )}
@@ -210,13 +183,11 @@ const Navbar = () => {
       {/* Mobile menu overlay */}
       {authUser && isMenuOpen && (
         <>
-          {/* Backdrop */}
           <div
             className="fixed inset-0 z-50 bg-black bg-opacity-50 md:hidden"
             onClick={() => setIsMenuOpen(false)}
           />
 
-          {/* Slide-in Menu panel */}
           <div className="fixed top-0 right-0 bottom-0 w-64 z-50 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg md:hidden animate-slide-in-right">
             <div className="p-4 space-y-2 mt-16">
               <NavLink
@@ -250,14 +221,8 @@ const Navbar = () => {
                 onClick={toggleTheme}
                 className="flex items-center gap-3 w-full px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
               >
-                {theme === "dark" ? (
-                  <Sun className="w-5 h-5 flex-shrink-0" />
-                ) : (
-                  <Moon className="w-5 h-5 flex-shrink-0" />
-                )}
-                <span className="font-medium">
-                  {theme === "dark" ? "Light Mode" : "Dark Mode"}
-                </span>
+                {theme === "dark" ? <Sun className="w-5 h-5 flex-shrink-0" /> : <Moon className="w-5 h-5 flex-shrink-0" />}
+                <span className="font-medium">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
               </button>
 
               <button

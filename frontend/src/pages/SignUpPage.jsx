@@ -4,7 +4,7 @@ import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User, CheckCircle2 } f
 import { Link } from "react-router-dom";
 import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +37,7 @@ const SignUpPage = () => {
       setTimeout(() => setSuccess(false), 2000);
     } catch (error) {
       console.error("Signup failed:", error);
+      toast.error(error.message || "Signup failed");
     }
   };
 
@@ -47,7 +48,7 @@ const SignUpPage = () => {
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: (i) => ({
+    visible: (i = 0) => ({
       opacity: 1,
       y: 0,
       transition: { delay: i * 0.15, duration: 0.5 },
@@ -64,6 +65,7 @@ const SignUpPage = () => {
           animate="visible"
           variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
         >
+          {/* Header */}
           <motion.div className="text-center mb-8" variants={fadeInUp}>
             <div className="flex flex-col items-center gap-2 group">
               <motion.div
@@ -78,8 +80,9 @@ const SignUpPage = () => {
             </div>
           </motion.div>
 
+          {/* Form */}
           <motion.form onSubmit={handleSubmit} className="space-y-6">
-            {/* Fullname */}
+            {/* Full Name */}
             <motion.div className="form-control" variants={fadeInUp}>
               <label className="label">
                 <span className="label-text font-medium text-gray-700">Full Name</span>
@@ -138,18 +141,15 @@ const SignUpPage = () => {
                   className="flex items-center p-1 rounded hover:bg-gray-100 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isSigningUp}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? (
-                    <EyeOff className="size-5 text-gray-400" />
-                  ) : (
-                    <Eye className="size-5 text-gray-400" />
-                  )}
+                  {showPassword ? <EyeOff className="size-5 text-gray-400" /> : <Eye className="size-5 text-gray-400" />}
                 </button>
               </div>
               <p className="text-sm text-gray-500 mt-1">Password must be at least 6 characters long</p>
             </motion.div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <motion.div variants={fadeInUp}>
               <button
                 type="submit"
@@ -162,6 +162,7 @@ const SignUpPage = () => {
             </motion.div>
           </motion.form>
 
+          {/* Sign In Link */}
           <motion.div className="text-center" variants={fadeInUp}>
             <p className="text-gray-600">
               Already have an account?{" "}
@@ -173,24 +174,26 @@ const SignUpPage = () => {
         </motion.div>
       </div>
 
-      {/* Right Side */}
+      {/* Right Side - Illustration */}
       <AuthImagePattern
         title="Join our community"
         subtitle="Connect with friends, share moments, and stay in touch with your loved ones"
       />
 
-      {/* ✅ Floating Success Toast */}
-      {success && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="fixed bottom-6 right-6 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2"
-        >
-          <CheckCircle2 className="w-5 h-5" />
-          <span>Account Created!</span>
-        </motion.div>
-      )}
+      {/* Floating Success Toast */}
+      <AnimatePresence>
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, y: 30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="fixed bottom-6 right-6 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2"
+          >
+            <CheckCircle2 className="w-5 h-5" />
+            <span>Account Created!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
