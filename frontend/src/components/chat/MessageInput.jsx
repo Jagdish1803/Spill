@@ -6,16 +6,17 @@ import toast from "react-hot-toast";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_CHAR_LIMIT = 2000;
 
-const MessageInput = () => {
+const MessageInput = ({ scrollToBottom }) => {
   const [text, setText] = useState("");
   const [images, setImages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-  const { sendMessage, isSendingMessage, selectedUser, sendTypingIndicator } =
-    useChatStore();
+
+  const { sendMessage, isSendingMessage, selectedUser, sendTypingIndicator } = useChatStore();
 
   // Auto-resize textarea
   const adjustTextareaHeight = useCallback(() => {
@@ -26,6 +27,7 @@ const MessageInput = () => {
     }
   }, []);
 
+  // Handle image selection
   const handleFiles = useCallback((files) => {
     for (let file of files) {
       if (file.size > MAX_FILE_SIZE) {
@@ -38,30 +40,20 @@ const MessageInput = () => {
       }
 
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImages((prev) => [...prev, reader.result]);
-      };
+      reader.onloadend = () => setImages((prev) => [...prev, reader.result]);
       reader.readAsDataURL(file);
     }
   }, []);
 
-  const handleImageChange = useCallback(
-    (e) => handleFiles(e.target.files),
-    [handleFiles]
-  );
+  const handleImageChange = useCallback((e) => handleFiles(e.target.files), [handleFiles]);
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    handleFiles(e.dataTransfer.files);
+  }, [handleFiles]);
 
-  const handleDrop = useCallback(
-    (e) => {
-      e.preventDefault();
-      handleFiles(e.dataTransfer.files);
-    },
-    [handleFiles]
-  );
+  const removeImage = useCallback((idx) => setImages((prev) => prev.filter((_, i) => i !== idx)), []);
 
-  const removeImage = useCallback((idx) => {
-    setImages((prev) => prev.filter((_, i) => i !== idx));
-  }, []);
-
+  // Handle text input and typing indicator
   const handleTextChange = useCallback(
     (e) => {
       const newText = e.target.value;
@@ -84,6 +76,7 @@ const MessageInput = () => {
     [selectedUser, isTyping, sendTypingIndicator, adjustTextareaHeight]
   );
 
+  // Handle sending message
   const handleSendMessage = useCallback(
     async (e) => {
       e.preventDefault();
@@ -97,20 +90,22 @@ const MessageInput = () => {
       }
 
       try {
-        await sendMessage({
-          text: messageText,
-          images,
-        });
+        await sendMessage({ text: messageText, images });
+
+        // Reset input
         setText("");
         setImages([]);
         if (fileInputRef.current) fileInputRef.current.value = "";
         if (textareaRef.current) textareaRef.current.style.height = "auto";
+
+        // Scroll to bottom after sending
+        scrollToBottom?.("smooth");
       } catch (err) {
         console.error("Send failed:", err);
         toast.error("Failed to send");
       }
     },
-    [text, images, isTyping, selectedUser, sendMessage, sendTypingIndicator]
+    [text, images, isTyping, selectedUser, sendMessage, sendTypingIndicator, scrollToBottom]
   );
 
   const handleKeyPress = useCallback(
@@ -123,6 +118,7 @@ const MessageInput = () => {
     [handleSendMessage]
   );
 
+  // Clean up typing indicator on unmount
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -132,14 +128,12 @@ const MessageInput = () => {
     };
   }, [isTyping, selectedUser, sendTypingIndicator]);
 
+  // Focus textarea when user changes
   useEffect(() => {
     if (selectedUser && textareaRef.current) textareaRef.current.focus();
   }, [selectedUser]);
 
-  const canSend =
-    (text.trim() || images.length > 0) &&
-    !isSendingMessage &&
-    !isUploading;
+  const canSend = (text.trim() || images.length > 0) && !isSendingMessage && !isUploading;
 
   return (
     <div
@@ -183,24 +177,14 @@ const MessageInput = () => {
             style={{ minHeight: "48px", maxHeight: "120px" }}
           />
           {text.length > 1500 && (
-            <div
-              className="absolute bottom-1 right-3 text-xs text-gray-400"
-              aria-describedby="char-limit"
-            >
+            <div className="absolute bottom-1 right-3 text-xs text-gray-400">
               {text.length}/{MAX_CHAR_LIMIT}
             </div>
           )}
         </div>
 
         {/* File Input */}
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          ref={fileInputRef}
-          onChange={handleImageChange}
-          multiple
-        />
+        <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageChange} multiple />
 
         <button
           type="button"
@@ -217,11 +201,7 @@ const MessageInput = () => {
           title="Send Message"
           disabled={!canSend}
         >
-          {isSendingMessage ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Send className="w-5 h-5" />
-          )}
+          {isSendingMessage ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Send className="w-5 h-5" />}
         </button>
       </form>
     </div>
