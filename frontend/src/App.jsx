@@ -7,25 +7,35 @@ import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import ErrorBoundary from "./components/ErrorBoundary";
 
-// Lazy load components for better performance
-const HomePage = lazy(() => import("./pages/HomePage"));
-const SignUpPage = lazy(() => import("./pages/SignUpPage"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const SettingsPage = lazy(() => import("./pages/SettingPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+// Lazy load components with better loading states
+const HomePage = lazy(() => 
+  import("./pages/HomePage").then(module => ({ default: module.default }))
+);
+const SignUpPage = lazy(() => 
+  import("./pages/SignUpPage").then(module => ({ default: module.default }))
+);
+const LoginPage = lazy(() => 
+  import("./pages/LoginPage").then(module => ({ default: module.default }))
+);
+const SettingsPage = lazy(() => 
+  import("./pages/SettingPage").then(module => ({ default: module.default }))
+);
+const ProfilePage = lazy(() => 
+  import("./pages/ProfilePage").then(module => ({ default: module.default }))
+);
 
-// Loading component
+// Optimized loading component
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
     <div className="text-center space-y-4">
-      <Loader className="size-8 animate-spin text-blue-600 mx-auto" />
-      <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+      <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
+      <p className="text-gray-600 dark:text-gray-400 text-sm">Loading...</p>
     </div>
   </div>
 );
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const { theme, initializeTheme } = useThemeStore();
 
   useEffect(() => {
@@ -33,10 +43,11 @@ const App = () => {
     checkAuth();
   }, [checkAuth, initializeTheme]);
 
-  // Preload critical components
+  // Preload critical routes based on auth state
   useEffect(() => {
     if (authUser) {
       import("./pages/HomePage");
+      import("./components/chat/ChatContainer");
     } else {
       import("./pages/LoginPage");
     }
@@ -65,16 +76,21 @@ const App = () => {
               path="/login" 
               element={!authUser ? <LoginPage /> : <Navigate to="/" replace />} 
             />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route 
+              path="/settings" 
+              element={authUser ? <SettingsPage /> : <Navigate to="/login" replace />} 
+            />
             <Route 
               path="/profile" 
               element={authUser ? <ProfilePage /> : <Navigate to="/login" replace />} 
             />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
 
         <Toaster
           position="top-center"
+          containerClassName="z-50"
           toastOptions={{
             duration: 3000,
             style: {
@@ -83,6 +99,7 @@ const App = () => {
               fontSize: '14px',
               borderRadius: '8px',
               padding: '12px 16px',
+              maxWidth: '90vw',
             },
             success: {
               iconTheme: {

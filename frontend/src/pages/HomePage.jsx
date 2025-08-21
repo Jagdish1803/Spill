@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import Sidebar from "../components/chat/Sidebar";
 import NoChatSelected from "../components/chat/NoChatSelected";
 import ChatContainer from "../components/chat/ChatContainer";
-import { MessageSquare, ArrowLeft } from "lucide-react";
+import { MessageSquare, ArrowLeft, Users } from "lucide-react";
 
 const HomePage = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
@@ -15,8 +15,11 @@ const HomePage = () => {
   // Detect mobile screen size
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      // On desktop, always show sidebar
+      if (!mobile) {
         setShowSidebar(false);
       }
     };
@@ -34,6 +37,7 @@ const HomePage = () => {
     }
   }, [selectedUser, isMobile]);
 
+  // Handle back navigation
   const handleBackToSidebar = () => {
     setSelectedUser(null);
     if (isMobile) {
@@ -41,11 +45,16 @@ const HomePage = () => {
     }
   };
 
+  // Toggle sidebar on mobile
+  const toggleSidebar = () => {
+    setShowSidebar(!showSidebar);
+  };
+
   if (!authUser) {
     return (
       <div className="flex items-center justify-center h-screen pt-16">
         <div className="text-center">
-          <MessageSquare className="size-12 text-gray-400 mx-auto mb-4" />
+          <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Please log in to continue</p>
         </div>
       </div>
@@ -53,7 +62,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-50 dark:bg-gray-900 pt-16">
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 pt-16 mobile-optimized">
       <div className="flex h-full max-w-7xl mx-auto bg-white dark:bg-gray-800 shadow-sm">
         {/* Desktop Sidebar - Always visible on desktop */}
         <div className="hidden md:block">
@@ -67,33 +76,37 @@ const HomePage = () => {
               className="fixed inset-0 bg-black bg-opacity-50 z-40"
               onClick={() => setShowSidebar(false)}
             />
-            <div className="fixed left-0 top-16 bottom-0 w-80 max-w-[90vw] z-50">
-              <Sidebar />
+            <div className="fixed left-0 top-16 bottom-0 w-80 max-w-[90vw] z-50 animate-slide-up">
+              <Sidebar onClose={() => setShowSidebar(false)} />
             </div>
           </>
         )}
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Mobile Header - Show when chat is selected */}
           {isMobile && selectedUser && (
-            <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
               <button
                 onClick={handleBackToSidebar}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors touch-target"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors touch-target flex-shrink-0"
+                aria-label="Back to contacts"
               >
-                <ArrowLeft className="size-5 text-gray-600 dark:text-gray-400" />
+                <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
-              <div className="flex items-center gap-3 flex-1">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 <img
                   src={selectedUser.profilePic || "/avatar.png"}
                   alt={selectedUser.fullname}
-                  className="size-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600 flex-shrink-0"
                 />
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-medium text-gray-900 dark:text-white truncate">
                     {selectedUser.fullname}
                   </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {selectedUser.email}
+                  </p>
                 </div>
               </div>
             </div>
@@ -102,19 +115,20 @@ const HomePage = () => {
           {/* Chat Content */}
           {!selectedUser ? (
             <div className="flex-1 flex flex-col">
-              {/* Mobile: Show sidebar toggle button */}
+              {/* Mobile: Show header with sidebar toggle */}
               {isMobile && (
-                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                   <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Chats</h1>
                   <button
-                    onClick={() => setShowSidebar(true)}
+                    onClick={toggleSidebar}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors touch-target"
+                    aria-label="Open contacts"
                   >
-                    <MessageSquare className="size-5 text-gray-600 dark:text-gray-400" />
+                    <Users className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   </button>
                 </div>
               )}
-              <NoChatSelected />
+              <NoChatSelected onOpenSidebar={isMobile ? toggleSidebar : undefined} />
             </div>
           ) : (
             <ChatContainer />

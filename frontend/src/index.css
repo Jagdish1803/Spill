@@ -1,126 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --toast-bg: #363636;
-    --toast-color: #fff;
-  }
-  
-  .dark {
-    --toast-bg: #1f2937;
-    --toast-color: #f9fafb;
-  }
-  
-  html {
-    scroll-behavior: smooth;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    touch-action: manipulation;
-  }
-  
-  /* Mobile optimization */
-  * {
-    box-sizing: border-box;
-  }
-  
-  input, textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
+:root {
+  --toast-bg: #ffffff;
+  --toast-color: #374151;
 }
 
-@layer components {
-  .skeleton {
-    @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
-  }
-  
-  /* Chat styles optimized for mobile */
-  .chat {
-    @apply flex gap-2 mb-2;
-  }
-  
-  .chat-start {
-    @apply justify-start;
-  }
-  
-  .chat-end {
-    @apply justify-end flex-row-reverse;
-  }
-  
-  .chat-image {
-    @apply flex-shrink-0;
-  }
-  
-  .chat-header {
-    @apply text-xs text-gray-500 dark:text-gray-400;
-  }
-  
-  .chat-bubble {
-    @apply relative py-2 px-4 rounded-xl max-w-xs sm:max-w-sm break-words;
-    word-wrap: break-word;
-    hyphens: auto;
-  }
-  
-  .chat-start .chat-bubble {
-    @apply rounded-bl-none;
-  }
-  
-  .chat-end .chat-bubble {
-    @apply rounded-br-none;
-  }
-  
-  /* Mobile-first scrollbar */
-  .custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e0 transparent;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar {
-    @apply w-1 sm:w-2;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-gray-500;
-  }
-  
-  /* Mobile touch improvements */
-  .touch-target {
-    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
-  }
-  
-  .mobile-safe-area {
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
+[data-theme='dark'] {
+  --toast-bg: #1f2937;
+  --toast-color: #f9fafb;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-  
-  .animate-slide-in {
-    animation: slideIn 0.3s ease-out;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Performance optimizations */
@@ -128,58 +35,98 @@
   will-change: scroll-position;
 }
 
-.will-change-transform {
-  will-change: transform;
-}
-
-.contain-layout {
-  contain: layout;
-}
-
 .contain-paint {
   contain: paint;
 }
 
-/* Mobile-specific media queries */
+.crisp-edges {
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.7);
+}
+
+/* Touch targets for mobile */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Loading skeleton */
+.skeleton {
+  @apply bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700;
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Mobile optimizations */
 @media (max-width: 768px) {
-  .chat-bubble {
-    @apply max-w-[280px];
+  .mobile-optimized {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   
-  .mobile-padding {
-    @apply px-4 py-2;
-  }
-  
-  .mobile-text {
-    @apply text-sm;
+  .mobile-input {
+    font-size: 16px; /* Prevents zoom on iOS */
   }
 }
 
-@media (max-width: 640px) {
-  .sidebar-mobile {
-    @apply fixed inset-0 z-50 transform transition-transform duration-300 ease-in-out;
-  }
-  
-  .sidebar-mobile.closed {
-    @apply -translate-x-full;
-  }
-  
-  .sidebar-mobile.open {
-    @apply translate-x-0;
-  }
-}
-
-/* High DPI display optimizations */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .crisp-edges {
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
+/* Dark mode improvements */
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
   }
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
