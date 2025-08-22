@@ -19,12 +19,11 @@ const HomePage = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
 
-      if (!mobile) setShowSidebar(false);
+      if (!mobile) setShowSidebar(false); // reset on desktop
     };
 
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
-
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
@@ -91,7 +90,7 @@ const HomePage = () => {
 
         {/* Chat Area */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Mobile Header - When user selected */}
+          {/* Mobile Header when user selected */}
           {isMobile && selectedUser && (
             <motion.div
               initial={{ y: -50, opacity: 0 }}
@@ -128,7 +127,7 @@ const HomePage = () => {
           {/* Chat Content */}
           {!selectedUser ? (
             <div className="flex-1 flex flex-col">
-              {/* Mobile: Show header with sidebar toggle */}
+              {/* Mobile Header when no chat selected */}
               {isMobile && (
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                   <h1 className="text-lg font-semibold text-gray-900 dark:text-white">

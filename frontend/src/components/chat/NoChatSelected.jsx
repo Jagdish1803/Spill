@@ -10,7 +10,7 @@ const NoChatSelected = () => {
       transition={{ duration: 0.6 }}
     >
       <div className="max-w-md text-center space-y-6">
-        {/* Icon with subtle bounce */}
+        {/* Animated Icon */}
         <div className="flex justify-center">
           <motion.div
             className="w-20 h-20 rounded-2xl bg-blue-100 dark:bg-blue-900 flex items-center justify-center"
@@ -21,7 +21,7 @@ const NoChatSelected = () => {
           </motion.div>
         </div>
 
-        {/* Heading + text */}
+        {/* Text Section */}
         <div className="space-y-2">
           <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
             Welcome to <span className="text-blue-600">Spill</span>
@@ -30,6 +30,8 @@ const NoChatSelected = () => {
             Select a conversation from the sidebar to start chatting with your
             friends and colleagues.
           </p>
+
+          {/* CTA Button */}
           <button className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow transition">
             Start a Chat
           </button>

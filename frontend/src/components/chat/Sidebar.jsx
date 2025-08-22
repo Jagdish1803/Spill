@@ -21,11 +21,12 @@ const Sidebar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(true);
 
+  // Fetch users on mount
   useEffect(() => {
     getUsers();
   }, [getUsers]);
 
-  // Filter users by search
+  // Filter users by search input
   const filteredUsers = useMemo(() => {
     if (!searchTerm) return users;
     return users.filter(
@@ -35,6 +36,7 @@ const Sidebar = () => {
     );
   }, [users, searchTerm]);
 
+  // Format last message time
   const formatLastMessageTime = useCallback((timestamp) => {
     if (!timestamp) return "";
     const messageDate = new Date(timestamp);
@@ -44,12 +46,18 @@ const Sidebar = () => {
     if (diffInHours < 1) return "now";
     if (diffInHours < 24) return formatMessageTime(timestamp);
     if (diffInHours < 48) return "Yesterday";
-    return messageDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return messageDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
   }, []);
 
+  // Truncate long message text
   const truncateMessage = useCallback((text, maxLength = 35) => {
     if (!text) return "";
-    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
   }, []);
 
   return (
@@ -68,7 +76,9 @@ const Sidebar = () => {
           {isOpen && (
             <>
               <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Contacts</h2>
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                Contacts
+              </h2>
               <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full">
                 {filteredUsers.length}
               </span>
@@ -106,7 +116,9 @@ const Sidebar = () => {
         {filteredUsers.length === 0 && !isUsersLoading ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 animate-fadeIn">
             <Users className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">No contacts found</h3>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+              No contacts found
+            </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {searchTerm ? "Try adjusting your search." : "Start a new chat."}
             </p>

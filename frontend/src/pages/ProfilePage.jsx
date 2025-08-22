@@ -39,21 +39,28 @@ const ProfilePage = () => {
     }
 
     const reader = new FileReader();
-    reader.readAsDataURL(file);
     reader.onload = () => {
       setSelectedImg(reader.result);
       setShowUpdateButton(true);
     };
+    reader.readAsDataURL(file);
   };
 
   const handleUpdateProfile = async () => {
     if (!selectedImg) return toast.error("No image selected");
+
     try {
       await updateProfile({ profilePic: selectedImg });
+      toast.success("Profile updated successfully!");
       setShowUpdateButton(false);
       setSelectedImg(null);
     } catch (error) {
       console.error("Failed to update profile:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update profile"
+      );
     }
   };
 
@@ -102,7 +109,7 @@ const ProfilePage = () => {
                 <div className="relative mx-auto w-32 h-32 mb-4 group">
                   <img
                     src={selectedImg || authUser.profilePic || "/avatar.png"}
-                    alt="Profile"
+                    alt="Profile avatar"
                     className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow-sm"
                   />
                   <label
@@ -119,6 +126,7 @@ const ProfilePage = () => {
                       accept="image/*"
                       onChange={handleImageUpload}
                       disabled={isUpdatingProfile}
+                      aria-label="Upload profile picture"
                     />
                   </label>
                 </div>
@@ -135,6 +143,7 @@ const ProfilePage = () => {
                       onClick={handleUpdateProfile}
                       disabled={isUpdatingProfile}
                       className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm shadow-sm transition"
+                      aria-label="Save profile picture"
                     >
                       {isUpdatingProfile ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -150,6 +159,7 @@ const ProfilePage = () => {
                       onClick={handleCancelUpdate}
                       disabled={isUpdatingProfile}
                       className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm shadow-sm transition"
+                      aria-label="Cancel profile update"
                     >
                       <X className="w-4 h-4" />
                       Cancel
@@ -171,36 +181,38 @@ const ProfilePage = () => {
             >
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <User className="w-5 h-5 text-blue-600" />
-                Basic Information
+                <p className="text-gray-700">Basic Information</p>
               </h2>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Full Name
+                    <p className="text-gray-700">Full Name</p>
                   </label>
                   <div className="flex border p-3 rounded-md items-center bg-gray-50">
                     <User className="w-5 h-5 text-gray-400 mr-3" />
                     <input
                       type="text"
-                      className="outline-none bg-transparent w-full"
+                        className="outline-none bg-transparent text-black w-full"
                       value={authUser?.fullname || "Not provided"}
                       readOnly
+                      aria-label="Full name"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Email Address
+                    <p className="text-gray-700">Email Address</p>
                   </label>
                   <div className="flex border p-3 rounded-md items-center bg-gray-50">
                     <Mail className="w-5 h-5 text-gray-400 mr-3" />
                     <input
                       type="email"
-                      className="outline-none bg-transparent w-full"
+                      className="outline-none bg-transparent text-black w-full"
                       value={authUser?.email || "Not provided"}
                       readOnly
+                      aria-label="Email address"
                     />
                   </div>
                 </div>
@@ -216,15 +228,15 @@ const ProfilePage = () => {
             >
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-blue-600" />
-                Account Information
+                <p className="text-gray-700">Account Information</p>
               </h2>
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-3 border-b border-gray-100">
                   <span className="text-gray-600">Member Since</span>
-                  <span className="font-medium flex items-center gap-2">
+                  <span className="font-medium flex items-center gap-2 text-gray-700">
                     <Calendar className="w-4 text-gray-400" />
-                    {authUser?.createdAt
+                    {authUser ?.createdAt
                       ? new Date(authUser.createdAt).toLocaleDateString()
                       : "Not available"}
                   </span>
@@ -237,12 +249,7 @@ const ProfilePage = () => {
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center py-3">
-                  <span className="text-gray-600">User ID</span>
-                  <span className="font-mono text-sm text-gray-500">
-                    {authUser?._id || "Not available"}
-                  </span>
-                </div>
+                
               </div>
             </motion.div>
 
@@ -259,7 +266,9 @@ const ProfilePage = () => {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={logout}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-md shadow-sm transition flex items-center justify-center gap-2"
+                  disabled={isUpdatingProfile}
+                  className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white py-3 px-4 rounded-md shadow-sm transition flex items-center justify-center gap-2"
+                  aria-label="Logout from account"
                 >
                   <LogOut className="w-5 h-5" />
                   Logout from Account

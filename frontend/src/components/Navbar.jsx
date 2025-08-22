@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 
-// Reusable NavLink component
+// ✅ Reusable NavLink
 const NavLink = ({ to, icon: Icon, children, onClick, isActive }) => (
   <Link
     to={to}
@@ -35,16 +35,12 @@ const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Close menu on route change
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location.pathname]);
+  // ✅ Close menu on route change
+  useEffect(() => setIsMenuOpen(false), [location.pathname]);
 
-  // Close menu on escape key
+  // ✅ Close menu on Escape key
   useEffect(() => {
-    const handleEscapeKey = (event) => {
-      if (event.key === "Escape") setIsMenuOpen(false);
-    };
+    const handleEscapeKey = (e) => e.key === "Escape" && setIsMenuOpen(false);
 
     if (isMenuOpen) {
       document.addEventListener("keydown", handleEscapeKey);
@@ -59,17 +55,20 @@ const Navbar = () => {
     };
   }, [isMenuOpen]);
 
+  // ✅ Logout handler
   const handleLogout = async () => {
     try {
       await logout();
       setIsMenuOpen(false);
-    } catch (error) {
-      console.error("Logout failed:", error);
+    } catch (err) {
+      console.error("Logout failed:", err);
     }
   };
 
-  const toggleMobileMenu = () => setIsMenuOpen(!isMenuOpen);
+  // ✅ Mobile toggle
+  const toggleMobileMenu = () => setIsMenuOpen((prev) => !prev);
 
+  // ✅ Avatar renderer
   const renderAvatar = () => {
     if (authUser?.profilePic) {
       return (
@@ -80,9 +79,7 @@ const Navbar = () => {
         />
       );
     }
-    const initials = authUser?.fullname
-      ? authUser.fullname.charAt(0).toUpperCase()
-      : "?";
+    const initials = authUser?.fullname?.charAt(0).toUpperCase() || "?";
     return (
       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
         {initials}
@@ -92,6 +89,7 @@ const Navbar = () => {
 
   return (
     <>
+      {/* ✅ Top Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -106,7 +104,7 @@ const Navbar = () => {
 
             {authUser ? (
               <>
-                {/* Desktop Navigation */}
+                {/* ✅ Desktop Nav */}
                 <div className="hidden md:flex items-center gap-2">
                   <NavLink
                     to="/"
@@ -132,13 +130,19 @@ const Navbar = () => {
 
                   <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2" />
 
+                  {/* Theme toggle */}
                   <button
                     onClick={toggleTheme}
                     className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    {theme === "dark" ? (
+                      <Sun className="w-5 h-5" />
+                    ) : (
+                      <Moon className="w-5 h-5" />
+                    )}
                   </button>
 
+                  {/* Logout */}
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
@@ -148,7 +152,7 @@ const Navbar = () => {
                   </button>
                 </div>
 
-                {/* Mobile menu button */}
+                {/* ✅ Mobile Toggle */}
                 <div className="md:hidden flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     {renderAvatar()}
@@ -172,7 +176,11 @@ const Navbar = () => {
                   onClick={toggleTheme}
                   className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                  {theme === "dark" ? (
+                    <Sun className="w-5 h-5" />
+                  ) : (
+                    <Moon className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             )}
@@ -180,7 +188,7 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile menu overlay */}
+      {/* ✅ Mobile Menu Overlay */}
       {authUser && isMenuOpen && (
         <>
           <div
@@ -217,14 +225,22 @@ const Navbar = () => {
 
               <div className="border-t border-gray-200 dark:border-gray-700 my-4" />
 
+              {/* Theme toggle */}
               <button
                 onClick={toggleTheme}
                 className="flex items-center gap-3 w-full px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
               >
-                {theme === "dark" ? <Sun className="w-5 h-5 flex-shrink-0" /> : <Moon className="w-5 h-5 flex-shrink-0" />}
-                <span className="font-medium">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                {theme === "dark" ? (
+                  <Sun className="w-5 h-5 flex-shrink-0" />
+                ) : (
+                  <Moon className="w-5 h-5 flex-shrink-0" />
+                )}
+                <span className="font-medium">
+                  {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                </span>
               </button>
 
+              {/* Logout */}
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-3 w-full px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors text-left"
