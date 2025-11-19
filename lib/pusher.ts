@@ -23,6 +23,10 @@ export function createPusherClient() {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       },
+      channelAuthorization: {
+        endpoint: '/api/pusher/auth',
+        transport: 'ajax',
+      },
     }
   )
 }

@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 
     if (!userId) {
       console.log('[PUSHER_AUTH] Unauthorized - no userId')
-      return new NextResponse('Unauthorized', { status: 401 })
+      return new NextResponse('Unauthorized', { status: 403 })
     }
 
     const body = await req.text()
@@ -24,8 +24,9 @@ export async function POST(req: Request) {
       return new NextResponse('Missing required fields', { status: 400 })
     }
 
+    // For private channels, just authorize
     const authResponse = pusherServer.authorizeChannel(socketId, channel)
-    console.log('[PUSHER_AUTH] Authorization successful')
+    console.log('[PUSHER_AUTH] Authorization successful:', authResponse)
 
     return NextResponse.json(authResponse)
   } catch (error) {

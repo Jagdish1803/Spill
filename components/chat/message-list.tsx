@@ -43,7 +43,7 @@ export function MessageList({ selectedUserId, currentUserId }: MessageListProps)
   useEffect(() => {
     if (!selectedUserId || !currentUserId) return;
 
-    // Initialize Pusher client
+    // Initialize Pusher client with fresh instance
     if (!pusherRef.current) {
       const client = createPusherClient();
       if (client) {
