@@ -5,7 +5,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { createPusherClient } from "@/lib/pusher";
-import { useMessageStore } from "@/store/message-store";
 import Pusher from "pusher-js";
 
 interface Message {
@@ -28,24 +27,18 @@ interface MessageListProps {
 }
 
 export function MessageList({ selectedUserId, currentUserId }: MessageListProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pusherRef = useRef<Pusher | null>(null);
-  const { messages, addMessage, setMessages } = useMessageStore();
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
-  
-  const conversationId = selectedUserId && currentUserId 
-    ? [currentUserId, selectedUserId].sort().join('-')
-    : null;
-  
-  const conversationMessages = conversationId ? messages[conversationId] || [] : [];
-  const loading = conversationId ? conversationMessages.length === 0 : false;
   const isOtherUserTyping = selectedUserId ? typingUsers[selectedUserId] : false;
 
   useEffect(() => {
-    if (selectedUserId && conversationId) {
+    if (selectedUserId) {
       fetchMessages();
     }
-  }, [selectedUserId, conversationId]);
+  }, [selectedUserId]);
 
   useEffect(() => {
     if (!selectedUserId || !currentUserId) return;
@@ -90,9 +83,15 @@ export function MessageList({ selectedUserId, currentUserId }: MessageListProps)
 
     channel.bind('new-message', (message: Message) => {
       console.log('📨 Received new message via Pusher:', message);
-      if (conversationId) {
-        addMessage(conversationId, message);
-      }
+      setMessages((prev) => {
+        // Avoid duplicates
+        if (prev.some(m => m.id === message.id)) {
+          console.log('⚠️ Duplicate message, skipping');
+          return prev;
+        }
+        console.log('✅ Adding new message to list');
+        return [...prev, message];
+      });
       setTimeout(() => scrollToBottom(), 100);
     });
 
@@ -126,17 +125,26 @@ export function MessageList({ selectedUserId, currentUserId }: MessageListProps)
   }, [messages]);
 
   const fetchMessages = async () => {
-    if (!selectedUserId || !conversationId) return;
+    if (!selectedUserId) return;
+
+    const isInitialLoad = messages.length === 0;
+    if (isInitialLoad) {
+      setLoading(true);
+    }
     
     try {
       const res = await fetch(`/api/messages?userId=${selectedUserId}`);
       if (res.ok) {
         const data = await res.json();
-        setMessages(conversationId, data);
+        setMessages(data);
         scrollToBottom();
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
+    } finally {
+      if (isInitialLoad) {
+        setLoading(false);
+      }
     }
   };
 
@@ -187,12 +195,12 @@ export function MessageList({ selectedUserId, currentUserId }: MessageListProps)
           <div className="text-center text-sm text-muted-foreground">
             Loading messages...
           </div>
-        ) : conversationMessages.length === 0 ? (
+        ) : messages.length === 0 ? (
           <div className="text-center text-sm text-muted-foreground">
             No messages yet. Start the conversation!
           </div>
         ) : (
-          conversationMessages.map((message) => {
+          messages.map((message) => {
             const isCurrentUser = message.senderId === currentUserId;
             return (
               <div

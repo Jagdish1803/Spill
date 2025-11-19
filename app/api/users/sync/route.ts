@@ -21,18 +21,37 @@ export async function POST() {
       where: { clerkId: userId },
     })
 
-    // If not, create the user
+    // If not, check by email and update clerkId
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          clerkId: userId,
-          email: clerkUser.emailAddresses[0].emailAddress,
-          firstName: clerkUser.firstName || null,
-          lastName: clerkUser.lastName || null,
-          imageUrl: clerkUser.imageUrl || null,
-          username: clerkUser.username || null,
-        },
+      user = await prisma.user.findUnique({
+        where: { email: clerkUser.emailAddresses[0].emailAddress },
       })
+      
+      if (user) {
+        // Update existing user with new clerkId
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            clerkId: userId,
+            firstName: clerkUser.firstName || user.firstName,
+            lastName: clerkUser.lastName || user.lastName,
+            imageUrl: clerkUser.imageUrl || user.imageUrl,
+            username: clerkUser.username || user.username,
+          },
+        })
+      } else {
+        // Create new user
+        user = await prisma.user.create({
+          data: {
+            clerkId: userId,
+            email: clerkUser.emailAddresses[0].emailAddress,
+            firstName: clerkUser.firstName || null,
+            lastName: clerkUser.lastName || null,
+            imageUrl: clerkUser.imageUrl || null,
+            username: clerkUser.username || null,
+          },
+        })
+      }
     }
 
     return NextResponse.json(user)

@@ -7,8 +7,11 @@ export async function GET() {
     const { userId } = await auth()
 
     if (!userId) {
+      console.log('[USERS_GET] No userId from auth')
       return new NextResponse('Unauthorized', { status: 401 })
     }
+
+    console.log('[USERS_GET] Fetching user with clerkId:', userId)
 
     // Get current user from database
     const currentUser = await prisma.user.findUnique({
@@ -16,8 +19,12 @@ export async function GET() {
     })
 
     if (!currentUser) {
-      return new NextResponse('User not found', { status: 404 })
+      console.log('[USERS_GET] Current user not found in database, returning empty array')
+      // Return empty array instead of error - user might not be synced yet
+      return NextResponse.json([])
     }
+
+    console.log('[USERS_GET] Current user found:', currentUser.id)
 
     // Get all users except current user
     const users = await prisma.user.findMany({
@@ -43,6 +50,7 @@ export async function GET() {
       },
     })
 
+    console.log('[USERS_GET] Found users:', users.length)
     return NextResponse.json(users)
   } catch (error) {
     console.error('[USERS_GET]', error)

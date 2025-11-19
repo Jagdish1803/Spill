@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { LogOut, Settings, User } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useUserStore } from "@/store/user-store";
 
 interface ChatUser {
   id: string;
@@ -36,14 +35,8 @@ export function ChatSidebar({
 }) {
   const { user } = useUser();
   const { signOut } = useClerk();
-  const { users, setUsers, setCurrentUserId } = useUserStore();
+  const [users, setUsers] = useState<ChatUser[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user?.id) {
-      setCurrentUserId(user.id);
-    }
-  }, [user?.id, setCurrentUserId]);
 
   useEffect(() => {
     fetchUsers();
@@ -55,6 +48,9 @@ export function ChatSidebar({
       if (res.ok) {
         const data = await res.json();
         setUsers(data);
+        console.log('Fetched users:', data);
+      } else {
+        console.error('Failed to fetch users, status:', res.status);
       }
     } catch (error) {
       console.error('Error fetching users:', error);

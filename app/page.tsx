@@ -14,20 +14,14 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useUserStore } from "@/store/user-store";
 
 export default function Home() {
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string>("");
+  const [currentDbUserId, setCurrentDbUserId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { user } = useUser();
-  const { selectedUserId, setSelectedUserId, currentUserId, getSelectedUser, fetchCurrentUserId } = useUserStore();
-  
-  const selectedUser = getSelectedUser();
-  const selectedUserName = selectedUser 
-    ? (selectedUser.firstName && selectedUser.lastName
-        ? `${selectedUser.firstName} ${selectedUser.lastName}`
-        : selectedUser.firstName || selectedUser.username || selectedUser.email)
-    : "";
 
   useEffect(() => {
     setMounted(true);
@@ -38,8 +32,6 @@ export default function Home() {
     const syncUser = async () => {
       try {
         await fetch('/api/users/sync', { method: 'POST' });
-        // Fetch the current user ID after sync
-        await fetchCurrentUserId();
         // Set user as online
         await fetch('/api/users/status', {
           method: 'POST',
@@ -72,7 +64,53 @@ export default function Home() {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [user, fetchCurrentUserId]);
+  }, [user]);
+
+  useEffect(() => {
+    // Fetch current user's database ID
+    const fetchCurrentUser = async () => {
+      try {
+        if (user?.id) {
+          const userRes = await fetch(`/api/users/me`);
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            setCurrentDbUserId(userData.id);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+    };
+
+    if (user) {
+      fetchCurrentUser();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // Fetch selected user details
+    const fetchUserDetails = async () => {
+      if (selectedUserId) {
+        try {
+          const res = await fetch('/api/users');
+          if (res.ok) {
+            const users = await res.json();
+            const selectedUser = users.find((u: any) => u.id === selectedUserId);
+            if (selectedUser) {
+              const name = selectedUser.firstName && selectedUser.lastName
+                ? `${selectedUser.firstName} ${selectedUser.lastName}`
+                : selectedUser.firstName || selectedUser.username || selectedUser.email;
+              setSelectedUserName(name);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [selectedUserId]);
 
   if (!mounted) {
     return null;
@@ -116,7 +154,7 @@ export default function Home() {
           {selectedUserId && <ChatHeader userName={selectedUserName} />}
           <MessageList 
             selectedUserId={selectedUserId} 
-            currentUserId={currentUserId}
+            currentUserId={currentDbUserId}
           />
           <MessageInput selectedUserId={selectedUserId} />
         </div>
