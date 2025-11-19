@@ -31,7 +31,7 @@ export function ChatSidebar({
   selectedUserId,
   onSelectUser,
 }: {
-  selectedUserId?: string;
+  selectedUserId?: string | null;
   onSelectUser: (userId: string) => void;
 }) {
   const { user } = useUser();
