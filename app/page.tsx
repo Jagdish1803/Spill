@@ -28,7 +28,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Sync current user to database
+    // Sync current user to database and set online
     const syncUser = async () => {
       try {
         await fetch('/api/users/sync', { method: 'POST' });
@@ -45,25 +45,70 @@ export default function Home() {
 
     if (user) {
       syncUser();
-    }
 
-    // Set user offline on page unload
-    const handleBeforeUnload = async () => {
-      if (user) {
-        await fetch('/api/users/status', {
+      // Send heartbeat every 30 seconds to keep user online
+      const heartbeatInterval = setInterval(async () => {
+        try {
+          await fetch('/api/users/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'online' }),
+          });
+        } catch (error) {
+          console.error('Error sending heartbeat:', error);
+        }
+      }, 30000); // 30 seconds
+
+      // Set user offline on page unload
+      const handleBeforeUnload = () => {
+        // Use keepalive for better reliability
+        navigator.sendBeacon('/api/users/status', JSON.stringify({ status: 'offline' }));
+      };
+
+      // Set user offline when tab becomes hidden (more reliable than beforeunload)
+      const handleVisibilityChange = async () => {
+        if (document.visibilityState === 'hidden') {
+          try {
+            await fetch('/api/users/status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'offline' }),
+              keepalive: true,
+            });
+          } catch (error) {
+            console.error('Error setting offline:', error);
+          }
+        } else if (document.visibilityState === 'visible') {
+          // Set back to online when tab becomes visible
+          try {
+            await fetch('/api/users/status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'online' }),
+            });
+          } catch (error) {
+            console.error('Error setting online:', error);
+          }
+        }
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        clearInterval(heartbeatInterval);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        
+        // Set offline on cleanup
+        fetch('/api/users/status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'offline' }),
           keepalive: true,
-        });
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+        }).catch(console.error);
+      };
+    }
   }, [user]);
 
   useEffect(() => {

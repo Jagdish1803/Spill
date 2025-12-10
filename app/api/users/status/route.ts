@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { pusherServer } from '@/lib/pusher'
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +19,13 @@ export async function POST(req: Request) {
         status,
         lastSeen: new Date()
       },
+    })
+
+    // Broadcast status update to all clients via Pusher
+    await pusherServer.trigger('presence-users', 'user-status', {
+      userId: user.id,
+      status: user.status,
+      lastSeen: user.lastSeen,
     })
 
     return NextResponse.json(user)

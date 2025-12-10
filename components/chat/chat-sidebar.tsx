@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { LogOut, Settings, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPusherClient } from "@/lib/pusher";
 
 interface ChatUser {
   id: string;
@@ -24,6 +25,7 @@ interface ChatUser {
   status: string | null;
   username: string | null;
   email: string;
+  lastSeen?: Date;
 }
 
 export function ChatSidebar({
@@ -40,6 +42,29 @@ export function ChatSidebar({
 
   useEffect(() => {
     fetchUsers();
+
+    // Setup Pusher for real-time status updates
+    const pusherClient = createPusherClient();
+    if (!pusherClient) return;
+
+    const channel = pusherClient.subscribe('presence-users');
+    
+    channel.bind('user-status', (data: { userId: string; status: string; lastSeen: string }) => {
+      console.log('Received status update:', data);
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === data.userId
+            ? { ...user, status: data.status, lastSeen: new Date(data.lastSeen) }
+            : user
+        )
+      );
+    });
+
+    return () => {
+      channel.unbind('user-status');
+      pusherClient.unsubscribe('presence-users');
+      pusherClient.disconnect();
+    };
   }, []);
 
   const fetchUsers = async () => {
@@ -84,6 +109,21 @@ export function ChatSidebar({
     return chatUser.email[0].toUpperCase();
   };
 
+  // Determine if user is actually online based on lastSeen timestamp
+  const isUserOnline = (chatUser: ChatUser) => {
+    if (chatUser.status !== 'online') return false;
+    
+    // If no lastSeen, assume offline
+    if (!chatUser.lastSeen) return false;
+    
+    const lastSeenDate = new Date(chatUser.lastSeen);
+    const now = new Date();
+    const diffInSeconds = (now.getTime() - lastSeenDate.getTime()) / 1000;
+    
+    // Consider user offline if lastSeen is more than 60 seconds ago
+    return diffInSeconds < 60;
+  };
+
   return (
     <div className="flex h-full w-80 flex-col border-r bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="p-6">
@@ -121,7 +161,7 @@ export function ChatSidebar({
                     <span
                       className={cn(
                         "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
-                        chatUser.status === "online" ? "bg-green-500" : "bg-gray-400"
+                        isUserOnline(chatUser) ? "bg-green-500" : "bg-gray-400"
                       )}
                     />
                   </div>
